@@ -2,6 +2,7 @@ import pytest
 
 from deeplearn_utils import (
     accuracy,
+    balanced_accuracy,
     confusion_matrix,
     macro_f1,
     precision_recall_f1,
@@ -54,6 +55,10 @@ def test_binary_metrics_are_zero_when_positive_class_is_absent():
 
 def test_macro_f1_averages_all_observed_classes():
     assert macro_f1([0, 0, 1, 1], [0, 1, 1, 1]) == pytest.approx(11 / 15)
+
+
+def test_balanced_accuracy_weights_classes_equally():
+    assert balanced_accuracy([0, 0, 0, 1], [0, 1, 0, 1]) == pytest.approx(5 / 6)
 
 
 def test_top_k_accuracy_accepts_ties_deterministically():

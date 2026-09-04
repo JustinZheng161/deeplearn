@@ -17,7 +17,7 @@ For a PyTorch `DataLoader`, derive independent streams for workers with `make_wo
 
 ## Classification metrics
 
-The dependency-free metrics module provides `accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports.
+The dependency-free metrics module provides `accuracy`, `balanced_accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports. `balanced_accuracy` weights each observed class equally, which is useful for imbalanced validation sets.
 
 ```python
 from deeplearn_utils import macro_f1, top_k_accuracy

@@ -145,4 +145,33 @@ def macro_f1(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
     return sum(scores) / len(scores)
 
 
-__all__ = ["accuracy", "confusion_matrix", "macro_f1", "precision_recall_f1", "top_k_accuracy"]
+def balanced_accuracy(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
+    """Return the mean recall across observed classes.
+
+    Each actual class receives equal weight, making this metric useful for
+    imbalanced validation sets. A class missed entirely contributes zero.
+    """
+    actual, predicted = _validate_pair(y_true, y_pred)
+    classes: list[Any] = []
+    for value in actual:
+        if value not in classes:
+            classes.append(value)
+    recalls = []
+    for label in classes:
+        support = sum(value == label for value in actual)
+        correct = sum(
+            target == label and guess == label
+            for target, guess in zip(actual, predicted)
+        )
+        recalls.append(correct / support if support else 0.0)
+    return sum(recalls) / len(recalls)
+
+
+__all__ = [
+    "accuracy",
+    "balanced_accuracy",
+    "confusion_matrix",
+    "macro_f1",
+    "precision_recall_f1",
+    "top_k_accuracy",
+]
