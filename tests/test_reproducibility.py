@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from deeplearn_utils import make_worker_init_fn, seed_everything
+from deeplearn_utils import derive_seed, make_worker_init_fn, seed_everything
 
 
 def test_seed_everything_repeats_python_and_numpy_sequences():
@@ -39,3 +39,18 @@ def test_worker_initializer_gives_workers_distinct_repeatable_streams():
 def test_worker_initializer_rejects_invalid_worker_id():
     with pytest.raises(ValueError):
         make_worker_init_fn(1)(-1)
+
+
+def test_derived_stream_seeds_are_stable_and_distinct():
+    assert derive_seed(42, 0) == derive_seed(42, 0)
+    assert derive_seed(42, 0) != derive_seed(42, 1)
+    assert 0 <= derive_seed(42, 0) < 2**32
+
+
+@pytest.mark.parametrize(
+    ("seed", "stream", "error"),
+    [(True, 0, TypeError), (-1, 0, ValueError), (1, True, TypeError), (1, -1, ValueError)],
+)
+def test_derived_stream_seeds_validate_inputs(seed, stream, error):
+    with pytest.raises(error):
+        derive_seed(seed, stream)

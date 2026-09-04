@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import random
+import hashlib
 from dataclasses import dataclass
 from typing import Callable
 
@@ -68,7 +69,12 @@ def seed_everything(seed: int, *, deterministic: bool = False) -> SeedReport:
 
 
 def make_worker_init_fn(seed: int) -> Callable[[int], None]:
-    """Create a DataLoader worker initializer with independent child seeds."""
+    """Create a DataLoader worker initializer with independent child seeds.
+
+    Python, NumPy, and PyTorch receive the same worker-specific seed. Using a
+    stable hash instead of simple addition avoids repeating streams when a
+    caller combines a large base seed with worker identifiers.
+    """
     if isinstance(seed, bool) or not isinstance(seed, int):
         raise TypeError("seed must be an integer")
     if seed < 0:
@@ -77,13 +83,33 @@ def make_worker_init_fn(seed: int) -> Callable[[int], None]:
     def initialize(worker_id: int) -> None:
         if not isinstance(worker_id, int) or worker_id < 0:
             raise ValueError("worker_id must be a non-negative integer")
-        child_seed = (seed + worker_id) % (2**32)
+        child_seed = derive_seed(seed, worker_id)
         random.seed(child_seed)
         numpy = _optional_numpy()
         if numpy is not None:
             numpy.random.seed(child_seed)
+        torch = _optional_torch()
+        if torch is not None:
+            torch.manual_seed(child_seed)
 
     return initialize
+
+
+def derive_seed(seed: int, stream: int) -> int:
+    """Derive a stable 32-bit seed for an independent experiment stream.
+
+    ``stream`` can represent a DataLoader worker, a rank, or another logical
+    consumer. The function is deterministic across Python processes and
+    versions, unlike Python's built-in ``hash`` function.
+    """
+    for name, value in (("seed", seed), ("stream", stream)):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} must be an integer")
+        if value < 0:
+            raise ValueError(f"{name} must be non-negative")
+    payload = f"{seed}:{stream}".encode("ascii")
+    digest = hashlib.blake2b(payload, digest_size=8).digest()
+    return int.from_bytes(digest, byteorder="big") % (2**32)
 
 
 def make_generator(seed: int):
