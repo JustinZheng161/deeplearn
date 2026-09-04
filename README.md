@@ -15,6 +15,17 @@ print(report)
 
 For a PyTorch `DataLoader`, derive independent streams for workers with `make_worker_init_fn(42)`. The initializer seeds Python, NumPy, and PyTorch consistently when those libraries are installed. Use `derive_seed(42, stream_id)` when you need stable seeds for distributed ranks or other independent consumers. A seeded PyTorch `Generator` is available through `make_generator(42)` when PyTorch is installed.
 
+## Classification metrics
+
+The dependency-free metrics module provides `accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports.
+
+```python
+from deeplearn_utils import macro_f1, top_k_accuracy
+
+f1 = macro_f1([0, 1, 1], [0, 1, 0])
+top1 = top_k_accuracy([0, 1], [[0.8, 0.2], [0.4, 0.6]])
+```
+
 ## Development
 
 Run the test suite with:
