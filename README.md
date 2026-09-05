@@ -26,6 +26,14 @@ f1 = macro_f1([0, 1, 1], [0, 1, 0])
 top1 = top_k_accuracy([0, 1], [[0.8, 0.2], [0.4, 0.6]])
 ```
 
+For neural classifiers whose confidence scores may be overconfident, `expected_calibration_error` measures the confidence-versus-accuracy gap across equal-width probability bins:
+
+```python
+from deeplearn_utils import expected_calibration_error
+
+ece = expected_calibration_error(correct, confidences, n_bins=10)
+```
+
 ## Development
 
 Run the test suite with:

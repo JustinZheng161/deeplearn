@@ -167,6 +167,48 @@ def balanced_accuracy(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
     return sum(recalls) / len(recalls)
 
 
+def expected_calibration_error(
+    correct: Sequence[bool], confidences: Sequence[float], *, n_bins: int = 10
+) -> float:
+    """Return equal-width expected calibration error for top-label predictions.
+
+    ``correct`` records whether each prediction was correct and ``confidences``
+    contains the corresponding maximum predicted probabilities. The result is
+    the confidence-weighted gap between bin accuracy and mean confidence.
+    """
+    if isinstance(n_bins, bool) or not isinstance(n_bins, int):
+        raise TypeError("n_bins must be an integer")
+    if n_bins < 1:
+        raise ValueError("n_bins must be positive")
+    if isinstance(correct, (str, bytes)) or isinstance(confidences, (str, bytes)):
+        raise TypeError("correct and confidences must be sequences")
+    correct_values = list(correct)
+    confidence_values = list(confidences)
+    if len(correct_values) != len(confidence_values):
+        raise ValueError("correct and confidences must have the same length")
+    if not confidence_values:
+        raise ValueError("correct and confidences must not be empty")
+    if any(not isinstance(value, bool) for value in correct_values):
+        raise TypeError("correct values must be booleans")
+    if any(not isinstance(value, (int, float)) or not isfinite(value) for value in confidence_values):
+        raise ValueError("confidences must be finite numbers")
+    if any(value < 0 or value > 1 for value in confidence_values):
+        raise ValueError("confidences must be between 0 and 1")
+
+    bins: list[list[tuple[bool, float]]] = [[] for _ in range(n_bins)]
+    for outcome, confidence in zip(correct_values, confidence_values):
+        index = min(int(confidence * n_bins), n_bins - 1)
+        bins[index].append((outcome, float(confidence)))
+    total = len(confidence_values)
+    return sum(
+        len(bucket) / total
+        * abs(sum(outcome for outcome, _ in bucket) / len(bucket)
+              - sum(confidence for _, confidence in bucket) / len(bucket))
+        for bucket in bins
+        if bucket
+    )
+
+
 __all__ = [
     "accuracy",
     "balanced_accuracy",

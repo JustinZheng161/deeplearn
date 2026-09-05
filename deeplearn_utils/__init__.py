@@ -10,6 +10,7 @@ from .reproducibility import (
 from .metrics import (
     accuracy,
     balanced_accuracy,
+    expected_calibration_error,
     confusion_matrix,
     macro_f1,
     precision_recall_f1,
@@ -24,6 +25,7 @@ __all__ = [
     "seed_everything",
     "accuracy",
     "balanced_accuracy",
+    "expected_calibration_error",
     "confusion_matrix",
     "macro_f1",
     "precision_recall_f1",
