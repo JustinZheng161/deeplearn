@@ -7,6 +7,7 @@ from .reproducibility import (
     make_worker_init_fn,
     seed_everything,
 )
+from .data import stratified_split
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -24,6 +25,7 @@ __all__ = [
     "make_worker_init_fn",
     "seed_everything",
     "accuracy",
+    "stratified_split",
     "balanced_accuracy",
     "expected_calibration_error",
     "confusion_matrix",
