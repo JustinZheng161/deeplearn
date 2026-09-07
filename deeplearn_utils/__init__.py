@@ -17,6 +17,13 @@ from .metrics import (
     precision_recall_f1,
     top_k_accuracy,
 )
+from .training import (
+    EarlyStopping,
+    EarlyStoppingState,
+    RunningAverage,
+    batch_indices,
+    iter_minibatches,
+)
 
 __all__ = [
     "SeedReport",
@@ -32,4 +39,9 @@ __all__ = [
     "macro_f1",
     "precision_recall_f1",
     "top_k_accuracy",
+    "EarlyStopping",
+    "EarlyStoppingState",
+    "RunningAverage",
+    "batch_indices",
+    "iter_minibatches",
 ]

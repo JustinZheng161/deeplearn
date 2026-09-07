@@ -44,6 +44,20 @@ from deeplearn_utils import expected_calibration_error
 ece = expected_calibration_error(correct, confidences, n_bins=10)
 ```
 
+## Training loop helpers
+
+`batch_indices` and `iter_minibatches` create reproducible mini-batches without changing the process-wide random generator. `RunningAverage` tracks sample-weighted epoch losses, while `EarlyStopping` monitors validation loss or score and exposes checkpoint-friendly state:
+
+```python
+from deeplearn_utils import EarlyStopping, iter_minibatches
+
+stopper = EarlyStopping(patience=3, mode="min")
+for features, targets in iter_minibatches(x_train, y_train, 32, shuffle=True, seed=42):
+    train_step(features, targets)
+if stopper.update(validation_loss):
+    print("stop training")
+```
+
 ## Development
 
 Run the test suite with:
