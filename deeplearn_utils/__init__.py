@@ -8,6 +8,7 @@ from .reproducibility import (
     seed_everything,
 )
 from .data import stratified_split
+from .schedules import warmup_cosine_decay
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -33,6 +34,7 @@ __all__ = [
     "seed_everything",
     "accuracy",
     "stratified_split",
+    "warmup_cosine_decay",
     "balanced_accuracy",
     "expected_calibration_error",
     "confusion_matrix",

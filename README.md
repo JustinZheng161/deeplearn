@@ -15,6 +15,18 @@ print(report)
 
 For a PyTorch `DataLoader`, derive independent streams for workers with `make_worker_init_fn(42)`. The initializer seeds Python, NumPy, and PyTorch consistently when those libraries are installed. Use `derive_seed(42, stream_id)` when you need stable seeds for distributed ranks or other independent consumers. A seeded PyTorch `Generator` is available through `make_generator(42)` when PyTorch is installed.
 
+## Learning-rate scheduling
+
+`warmup_cosine_decay` provides a framework-agnostic learning-rate schedule with linear warmup followed by cosine decay. It returns plain floats and clamps steps after training to the configured minimum:
+
+```python
+from deeplearn_utils import warmup_cosine_decay
+
+learning_rate = warmup_cosine_decay(
+    step, warmup_steps=500, total_steps=10_000, peak_lr=3e-4, min_lr=1e-6
+)
+```
+
 ## Dataset splitting
 
 `stratified_split` creates reproducible train and validation indices while preserving class representation. It keeps singleton classes in training rather than creating an unusable validation-only sample:
