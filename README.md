@@ -70,6 +70,20 @@ if stopper.update(validation_loss):
     print("stop training")
 ```
 
+## Experiment history
+
+`MetricHistory` records epoch metrics, finds the best loss or score, and serializes cleanly to JSON for checkpoints and experiment artifacts. Missing metrics are represented as `None`, so validation can be logged less frequently than training:
+
+```python
+from deeplearn_utils import MetricHistory
+
+history = MetricHistory()
+history.add(0, {"loss": 1.2, "accuracy": 0.42})
+history.add(1, {"loss": 0.9, "accuracy": 0.61})
+best = history.best("loss", mode="min")
+checkpoint_metadata = history.to_json(indent=2)
+```
+
 ## Development
 
 Run the test suite with:

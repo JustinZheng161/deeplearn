@@ -25,6 +25,7 @@ from .training import (
     batch_indices,
     iter_minibatches,
 )
+from .history import BestMetric, EpochRecord, MetricHistory
 
 __all__ = [
     "SeedReport",
@@ -46,4 +47,7 @@ __all__ = [
     "RunningAverage",
     "batch_indices",
     "iter_minibatches",
+    "BestMetric",
+    "EpochRecord",
+    "MetricHistory",
 ]
