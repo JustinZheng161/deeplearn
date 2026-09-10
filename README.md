@@ -37,6 +37,17 @@ from deeplearn_utils import stratified_split
 train_indices, validation_indices = stratified_split(labels, validation_fraction=0.2, seed=42)
 ```
 
+## Regression metrics
+
+The package also provides dependency-free `mean_absolute_error`, `mean_squared_error`, and `r2_score` helpers for regression models. Constant targets are handled explicitly so evaluation does not emit an undefined result:
+
+```python
+from deeplearn_utils import mean_squared_error, r2_score
+
+mse = mean_squared_error(targets, predictions)
+r2 = r2_score(targets, predictions)
+```
+
 ## Classification metrics
 
 The dependency-free metrics module provides `accuracy`, `balanced_accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports. `balanced_accuracy` weights each observed class equally, which is useful for imbalanced validation sets.

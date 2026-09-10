@@ -9,6 +9,7 @@ from .reproducibility import (
 )
 from .data import stratified_split
 from .schedules import warmup_cosine_decay
+from .regression import mean_absolute_error, mean_squared_error, r2_score
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -36,6 +37,9 @@ __all__ = [
     "accuracy",
     "stratified_split",
     "warmup_cosine_decay",
+    "mean_absolute_error",
+    "mean_squared_error",
+    "r2_score",
     "balanced_accuracy",
     "expected_calibration_error",
     "confusion_matrix",
