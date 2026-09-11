@@ -27,6 +27,7 @@ from .training import (
     iter_minibatches,
 )
 from .history import BestMetric, EpochRecord, MetricHistory
+from .preprocessing import MinMaxScaler, StandardScaler
 
 __all__ = [
     "SeedReport",
@@ -54,4 +55,6 @@ __all__ = [
     "BestMetric",
     "EpochRecord",
     "MetricHistory",
+    "MinMaxScaler",
+    "StandardScaler",
 ]

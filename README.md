@@ -95,6 +95,18 @@ best = history.best("loss", mode="min")
 checkpoint_metadata = history.to_json(indent=2)
 ```
 
+## Feature preprocessing
+
+`StandardScaler` and `MinMaxScaler` provide dependency-free, leakage-safe feature transforms. Fit them only on the training split, then reuse the fitted object for validation and test data; constant columns are handled without division errors and both scalers support inverse transforms:
+
+```python
+from deeplearn_utils import StandardScaler
+
+scaler = StandardScaler().fit(train_features)
+train_scaled = scaler.transform(train_features)
+validation_scaled = scaler.transform(validation_features)
+```
+
 ## Development
 
 Run the test suite with:
