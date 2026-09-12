@@ -37,6 +37,16 @@ from deeplearn_utils import stratified_split
 train_indices, validation_indices = stratified_split(labels, validation_fraction=0.2, seed=42)
 ```
 
+## Label smoothing
+
+`label_smoothed_targets` converts integer class labels into probability distributions for soft-target losses. It is framework-agnostic and keeps the target distribution normalized:
+
+```python
+from deeplearn_utils import label_smoothed_targets
+
+soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
+```
+
 ## Regression metrics
 
 The package also provides dependency-free `mean_absolute_error`, `mean_squared_error`, and `r2_score` helpers for regression models. Constant targets are handled explicitly so evaluation does not emit an undefined result:
