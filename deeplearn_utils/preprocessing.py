@@ -163,4 +163,69 @@ class MinMaxScaler:
         return self.fit(data).transform(data)
 
 
-__all__ = ["MinMaxScaler", "StandardScaler"]
+class RobustScaler:
+    """Center features by their median and scale by interquartile range.
+
+    The 25th and 75th percentiles are computed with linear interpolation.
+    Constant or zero-IQR columns use scale one, avoiding division errors while
+    mapping their centered values to zero.
+    """
+
+    def __init__(self) -> None:
+        self.center_: list[float] | None = None
+        self.scale_: list[float] | None = None
+        self.n_samples_seen_: int = 0
+
+    @property
+    def n_features_in_(self) -> int:
+        if self.center_ is None:
+            raise RuntimeError("scaler has not been fitted")
+        return len(self.center_)
+
+    @staticmethod
+    def _quantile(values: list[float], fraction: float) -> float:
+        ordered = sorted(values)
+        position = (len(ordered) - 1) * fraction
+        lower = math.floor(position)
+        upper = math.ceil(position)
+        if lower == upper:
+            return ordered[lower]
+        weight = position - lower
+        return ordered[lower] + (ordered[upper] - ordered[lower]) * weight
+
+    def fit(self, data: Sequence[Sequence[float]]) -> "RobustScaler":
+        rows = _matrix(data, "data")
+        width = len(rows[0])
+        self.center_ = []
+        self.scale_ = []
+        for column in range(width):
+            values = [row[column] for row in rows]
+            median = self._quantile(values, 0.5)
+            iqr = self._quantile(values, 0.75) - self._quantile(values, 0.25)
+            self.center_.append(median)
+            self.scale_.append(iqr or 1.0)
+        self.n_samples_seen_ = len(rows)
+        return self
+
+    def _require_fitted(self) -> tuple[list[float], list[float]]:
+        if self.center_ is None or self.scale_ is None:
+            raise RuntimeError("scaler has not been fitted")
+        return self.center_, self.scale_
+
+    def transform(self, data: Sequence[Sequence[float]]) -> list[list[float]]:
+        centers, scales = self._require_fitted()
+        rows = _matrix(data, "data")
+        _validate_fitted_width(rows, len(centers))
+        return [[(value - centers[column]) / scales[column] for column, value in enumerate(row)] for row in rows]
+
+    def inverse_transform(self, data: Sequence[Sequence[float]]) -> list[list[float]]:
+        centers, scales = self._require_fitted()
+        rows = _matrix(data, "data")
+        _validate_fitted_width(rows, len(centers))
+        return [[value * scales[column] + centers[column] for column, value in enumerate(row)] for row in rows]
+
+    def fit_transform(self, data: Sequence[Sequence[float]]) -> list[list[float]]:
+        return self.fit(data).transform(data)
+
+
+__all__ = ["MinMaxScaler", "RobustScaler", "StandardScaler"]

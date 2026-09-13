@@ -84,3 +84,41 @@ def test_fit_copies_input_and_does_not_mutate_rows():
     source = [[1, 2], [3, 4]]
     StandardScaler().fit_transform(source)
     assert source == [[1, 2], [3, 4]]
+
+
+def test_robust_scaler_uses_median_and_iqr():
+    from deeplearn_utils import RobustScaler
+
+    scaler = RobustScaler().fit([[1.0], [2.0], [3.0], [4.0], [100.0]])
+    assert scaler.center_ == [3.0]
+    assert scaler.scale_ == [2.0]
+    transformed = scaler.transform([[3.0], [100.0]])
+    assert [row[0] for row in transformed] == pytest.approx([0.0, 48.5])
+
+
+def test_robust_scaler_inverse_transform_recovers_original_values():
+    from deeplearn_utils import RobustScaler
+
+    scaler = RobustScaler().fit([[1, 10], [3, 20], [5, 30]])
+    transformed = scaler.transform([[2, 25]])
+    assert scaler.inverse_transform(transformed)[0] == pytest.approx([2, 25])
+    assert scaler.n_features_in_ == 2
+    assert scaler.n_samples_seen_ == 3
+
+
+def test_robust_scaler_handles_constant_columns():
+    from deeplearn_utils import RobustScaler
+
+    scaler = RobustScaler().fit([[4, 1], [4, 2], [4, 3]])
+    assert scaler.transform([[4, 2]]) == [[0.0, 0.0]]
+
+
+def test_robust_scaler_requires_fit_and_matching_width():
+    from deeplearn_utils import RobustScaler
+
+    scaler = RobustScaler()
+    with pytest.raises(RuntimeError, match="not been fitted"):
+        scaler.transform([[1]])
+    scaler.fit([[1, 2]])
+    with pytest.raises(ValueError, match="expected 2"):
+        scaler.transform([[1]])
