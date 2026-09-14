@@ -117,6 +117,17 @@ train_scaled = scaler.transform(train_features)
 validation_scaled = scaler.transform(validation_features)
 ```
 
+## Data augmentation
+
+The dependency-free augmentation helpers support reproducible Gaussian noise, feature dropout, and MixUp for numeric batches. `mixup` returns target pairs and interpolation weights so callers can build hard or soft labels in their chosen framework:
+
+```python
+from deeplearn_utils import compose_augmentations, mixup
+
+augmented = compose_augmentations(features, noise_stddev=0.01, dropout_probability=0.1, seed=42)
+mixed_features, mixed_targets = mixup(features, labels, alpha=0.2, seed=42)
+```
+
 ## Development
 
 Run the test suite with:

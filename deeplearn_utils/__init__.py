@@ -30,6 +30,12 @@ from .training import (
 )
 from .history import BestMetric, EpochRecord, MetricHistory
 from .preprocessing import MinMaxScaler, StandardScaler
+from .augmentation import (
+    add_gaussian_noise,
+    compose_augmentations,
+    mixup,
+    random_feature_dropout,
+)
 
 __all__ = [
     "SeedReport",
@@ -63,4 +69,8 @@ __all__ = [
     "MetricHistory",
     "MinMaxScaler",
     "StandardScaler",
+    "add_gaussian_noise",
+    "compose_augmentations",
+    "mixup",
+    "random_feature_dropout",
 ]
