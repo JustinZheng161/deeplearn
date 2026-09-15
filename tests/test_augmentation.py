@@ -92,3 +92,26 @@ def test_augmentations_reject_nonfinite_values():
         add_gaussian_noise([[float("nan")]])
     with pytest.raises(TypeError):
         random_feature_dropout([["x"]])
+
+
+def test_inverted_dropout_preserves_values_when_probability_is_zero():
+    from deeplearn_utils import inverted_feature_dropout
+
+    assert inverted_feature_dropout(FEATURES, probability=0.0, seed=3) == FEATURES
+
+
+def test_inverted_dropout_is_reproducible_and_scales_survivors():
+    from deeplearn_utils import inverted_feature_dropout
+
+    first = inverted_feature_dropout(FEATURES, probability=0.5, seed=4)
+    assert first == inverted_feature_dropout(FEATURES, probability=0.5, seed=4)
+    assert all(value == 0.0 or value in {2.0, 6.0, 10.0, 4.0, 8.0, 12.0} for row in first for value in row)
+
+
+def test_inverted_dropout_rejects_probability_one_and_composition_bounds():
+    from deeplearn_utils import inverted_feature_dropout
+
+    with pytest.raises(ValueError, match="less than one"):
+        inverted_feature_dropout(FEATURES, probability=1.0)
+    with pytest.raises(ValueError):
+        compose_augmentations(FEATURES, dropout_probability=1.1)

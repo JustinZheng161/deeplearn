@@ -104,6 +104,33 @@ def mixup(
     return mixed, mixed_targets
 
 
+def inverted_feature_dropout(
+    features: Sequence[Sequence[float]],
+    *,
+    probability: float = 0.1,
+    seed: int | None = None,
+) -> list[list[float]]:
+    """Drop features and rescale survivors to preserve their expectation.
+
+    This follows the inverted-dropout convention used during training: a
+    retained value is divided by ``1 - probability`` and a dropped value is
+    zero. Inputs are copied and a local RNG keeps seeded calls reproducible.
+    At probability zero the output is an exact numeric copy of the input.
+    """
+    rows = _rows(features)
+    probability = _probability(probability, "probability")
+    if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
+        raise TypeError("seed must be an integer or None")
+    if probability == 1.0:
+        raise ValueError("probability must be less than one for inverted dropout")
+    keep_scale = 1.0 / (1.0 - probability)
+    rng = random.Random(seed)
+    return [
+        [0.0 if rng.random() < probability else value * keep_scale for value in row]
+        for row in rows
+    ]
+
+
 def compose_augmentations(
     features: Sequence[Sequence[float]],
     *,
@@ -115,8 +142,7 @@ def compose_augmentations(
     result = _rows(features)
     if noise_stddev < 0:
         raise ValueError("noise_stddev must be non-negative")
-    if dropout_probability < 0:
-        raise ValueError("dropout_probability must be non-negative")
+    dropout_probability = _probability(dropout_probability, "dropout_probability")
     if noise_stddev:
         result = add_gaussian_noise(result, stddev=noise_stddev, seed=seed)
     if dropout_probability:
@@ -130,6 +156,7 @@ def compose_augmentations(
 __all__ = [
     "add_gaussian_noise",
     "compose_augmentations",
+    "inverted_feature_dropout",
     "mixup",
     "random_feature_dropout",
 ]

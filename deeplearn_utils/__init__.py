@@ -29,12 +29,12 @@ from .training import (
     iter_minibatches,
 )
 from .history import BestMetric, EpochRecord, MetricHistory
-from .preprocessing import MinMaxScaler, StandardScaler
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
     mixup,
     random_feature_dropout,
+    inverted_feature_dropout,
 )
 
 __all__ = [
@@ -73,4 +73,5 @@ __all__ = [
     "compose_augmentations",
     "mixup",
     "random_feature_dropout",
+    "inverted_feature_dropout",
 ]
