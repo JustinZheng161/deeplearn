@@ -128,6 +128,18 @@ augmented = compose_augmentations(features, noise_stddev=0.01, dropout_probabili
 mixed_features, mixed_targets = mixup(features, labels, alpha=0.2, seed=42)
 ```
 
+## Cross-validation
+
+`kfold_indices` yields complementary train/validation indices, while `stratified_kfold_indices` distributes each class across folds as evenly as possible. Both support deterministic shuffling and keep the original dataset untouched:
+
+```python
+from deeplearn_utils import stratified_kfold_indices
+
+for train_indices, validation_indices in stratified_kfold_indices(labels, folds=5, seed=42):
+    train_model(train_indices)
+    evaluate_model(validation_indices)
+```
+
 ## Development
 
 Run the test suite with:

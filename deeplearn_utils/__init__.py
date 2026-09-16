@@ -36,6 +36,7 @@ from .augmentation import (
     random_feature_dropout,
     inverted_feature_dropout,
 )
+from .validation import fold_class_counts, kfold_indices, stratified_kfold_indices
 
 __all__ = [
     "SeedReport",
@@ -74,4 +75,7 @@ __all__ = [
     "mixup",
     "random_feature_dropout",
     "inverted_feature_dropout",
+    "fold_class_counts",
+    "kfold_indices",
+    "stratified_kfold_indices",
 ]
