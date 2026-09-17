@@ -29,6 +29,16 @@ learning_rate = warmup_cosine_decay(
 
 ## Dataset splitting
 
+`stratified_kfold` creates reproducible cross-validation folds while preserving class proportions in each validation set:
+
+```python
+from deeplearn_utils import stratified_kfold
+
+for train_indices, validation_indices in stratified_kfold(labels, folds=5, seed=42):
+    train_model(train_indices, validation_indices)
+```
+
+
 `stratified_split` creates reproducible train and validation indices while preserving class representation. It keeps singleton classes in training rather than creating an unusable validation-only sample:
 
 ```python

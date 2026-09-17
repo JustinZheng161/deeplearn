@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import stratified_split
+from deeplearn_utils import stratified_kfold, stratified_split
 
 
 def test_stratified_split_preserves_each_class_in_both_sides():
@@ -44,3 +44,32 @@ def test_stratified_split_rejects_empty_and_unhashable_labels():
         stratified_split([])
     with pytest.raises(TypeError, match="hashable"):
         stratified_split([[0], [1]])
+
+
+def test_stratified_kfold_covers_samples_once_and_balances_classes():
+    labels = [0] * 6 + [1] * 6
+    folds = stratified_kfold(labels, 3, seed=5)
+    validation_sets = [set(validation) for _, validation in folds]
+
+    assert set.union(*validation_sets) == set(range(len(labels)))
+    assert sum(len(current & other) for index, current in enumerate(validation_sets) for other in validation_sets[index + 1:]) == 0
+    for _, validation in folds:
+        fold_labels = [labels[index] for index in validation]
+        assert fold_labels.count(0) == fold_labels.count(1) == 2
+
+
+def test_stratified_kfold_is_reproducible_and_has_complete_train_sets():
+    labels = ["a", "a", "b", "b", "c", "c"]
+    first = stratified_kfold(labels, 3, seed=9)
+    second = stratified_kfold(labels, 3, seed=9)
+
+    assert first == second
+    for train, validation in first:
+        assert set(train).isdisjoint(validation)
+        assert sorted(train + validation) == list(range(len(labels)))
+
+
+@pytest.mark.parametrize("folds", [0, 1, 7, True, 1.5])
+def test_stratified_kfold_validates_fold_count(folds):
+    with pytest.raises((TypeError, ValueError)):
+        stratified_kfold([0, 1, 2, 3], folds)
