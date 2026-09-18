@@ -37,6 +37,14 @@ from .augmentation import (
     inverted_feature_dropout,
 )
 from .validation import fold_class_counts, kfold_indices, stratified_kfold_indices
+from .probabilities import (
+    binary_cross_entropy,
+    categorical_entropy,
+    log_softmax,
+    sigmoid,
+    softmax,
+    softmax_batch,
+)
 
 __all__ = [
     "SeedReport",
@@ -79,4 +87,10 @@ __all__ = [
     "fold_class_counts",
     "kfold_indices",
     "stratified_kfold_indices",
+    "binary_cross_entropy",
+    "categorical_entropy",
+    "log_softmax",
+    "sigmoid",
+    "softmax",
+    "softmax_batch",
 ]

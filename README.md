@@ -150,6 +150,17 @@ for train_indices, validation_indices in stratified_kfold_indices(labels, folds=
     evaluate_model(validation_indices)
 ```
 
+## Probability utilities
+
+`softmax`, `log_softmax`, and `sigmoid` use numerically stable formulas for converting model logits to probabilities. `categorical_entropy` measures predictive uncertainty, while `binary_cross_entropy` safely clips extreme probabilities:
+
+```python
+from deeplearn_utils import categorical_entropy, softmax
+
+probabilities = softmax(logits)
+uncertainty = categorical_entropy(probabilities)
+```
+
 ## Development
 
 Run the test suite with:
