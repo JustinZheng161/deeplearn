@@ -47,6 +47,16 @@ from deeplearn_utils import stratified_split
 train_indices, validation_indices = stratified_split(labels, validation_fraction=0.2, seed=42)
 ```
 
+## Classification losses
+
+`categorical_cross_entropy` and `categorical_cross_entropy_batch` evaluate normalized hard or soft target distributions with stable probability clipping. They work directly with the output of `label_smoothed_targets`:
+
+```python
+from deeplearn_utils import categorical_cross_entropy
+
+loss = categorical_cross_entropy(soft_target, predicted_probabilities)
+```
+
 ## Label smoothing
 
 `label_smoothed_targets` converts integer class labels into probability distributions for soft-target losses. It is framework-agnostic and keeps the target distribution normalized:

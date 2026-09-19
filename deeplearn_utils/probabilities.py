@@ -99,8 +99,63 @@ def binary_cross_entropy(target: float, probability: float, *, epsilon: float = 
     return -(float(target) * math.log(clipped) + (1.0 - float(target)) * math.log(1.0 - clipped))
 
 
+def categorical_cross_entropy(
+    target: Sequence[float],
+    probabilities: Sequence[float],
+    *,
+    epsilon: float = 1e-15,
+) -> float:
+    """Return cross-entropy for one normalized target distribution.
+
+    Soft targets are supported, which makes the function compatible with
+    label smoothing and mixup. Probabilities are clipped only for the
+    logarithm, so small numerical underflow cannot produce infinite loss.
+    """
+    targets = _values(target, "target")
+    predicted = _values(probabilities, "probabilities")
+    if len(targets) != len(predicted):
+        raise ValueError("target and probabilities must have the same length")
+    if any(value < 0 for value in targets):
+        raise ValueError("target values must be non-negative")
+    if any(value < 0 or value > 1 for value in predicted):
+        raise ValueError("probabilities must be between zero and one")
+    if not math.isclose(sum(targets), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("target values must sum to one")
+    if not math.isclose(sum(predicted), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("probabilities must sum to one")
+    if isinstance(epsilon, bool) or not isinstance(epsilon, (int, float)):
+        raise TypeError("epsilon must be a number")
+    if not 0 < epsilon < 0.5:
+        raise ValueError("epsilon must be between zero and one half")
+    return -sum(target_value * math.log(max(probability, epsilon))
+                for target_value, probability in zip(targets, predicted)
+                if target_value > 0)
+
+
+def categorical_cross_entropy_batch(
+    targets: Sequence[Sequence[float]],
+    probabilities: Sequence[Sequence[float]],
+    *,
+    epsilon: float = 1e-15,
+) -> float:
+    """Return the mean categorical cross-entropy across a batch."""
+    if isinstance(targets, (str, bytes)) or isinstance(probabilities, (str, bytes)):
+        raise TypeError("targets and probabilities must be sequences of rows")
+    target_rows = list(targets)
+    probability_rows = list(probabilities)
+    if not target_rows or not probability_rows:
+        raise ValueError("targets and probabilities must not be empty")
+    if len(target_rows) != len(probability_rows):
+        raise ValueError("targets and probabilities must have the same batch size")
+    losses = [categorical_cross_entropy(target, prediction, epsilon=epsilon)
+              for target, prediction in zip(target_rows, probability_rows)]
+    return sum(losses) / len(losses)
+
+
 __all__ = [
     "binary_cross_entropy",
+    "categorical_cross_entropy",
+    "categorical_cross_entropy_batch",
     "categorical_entropy",
     "log_softmax",
     "sigmoid",
