@@ -99,6 +99,49 @@ def binary_cross_entropy(target: float, probability: float, *, epsilon: float = 
     return -(float(target) * math.log(clipped) + (1.0 - float(target)) * math.log(1.0 - clipped))
 
 
+def brier_score(
+    target: Sequence[float], probabilities: Sequence[float]
+) -> float:
+    """Return the multiclass Brier score for one probability distribution.
+
+    The score is the sum of squared differences between target and predicted
+    probabilities; lower values indicate better calibrated predictions.
+    Soft targets are accepted for label smoothing and mixup workflows.
+    """
+    targets = _values(target, "target")
+    predicted = _values(probabilities, "probabilities")
+    if len(targets) != len(predicted):
+        raise ValueError("target and probabilities must have the same length")
+    if any(value < 0 for value in targets):
+        raise ValueError("target values must be non-negative")
+    if any(value < 0 or value > 1 for value in predicted):
+        raise ValueError("probabilities must be between zero and one")
+    if not math.isclose(sum(targets), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("target values must sum to one")
+    if not math.isclose(sum(predicted), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("probabilities must sum to one")
+    return sum((target_value - probability) ** 2
+               for target_value, probability in zip(targets, predicted))
+
+
+def brier_score_batch(
+    targets: Sequence[Sequence[float]],
+    probabilities: Sequence[Sequence[float]],
+) -> float:
+    """Return the mean multiclass Brier score across a batch."""
+    if isinstance(targets, (str, bytes)) or isinstance(probabilities, (str, bytes)):
+        raise TypeError("targets and probabilities must be sequences of rows")
+    target_rows = list(targets)
+    probability_rows = list(probabilities)
+    if not target_rows or not probability_rows:
+        raise ValueError("targets and probabilities must not be empty")
+    if len(target_rows) != len(probability_rows):
+        raise ValueError("targets and probabilities must have the same batch size")
+    scores = [brier_score(target, prediction)
+              for target, prediction in zip(target_rows, probability_rows)]
+    return sum(scores) / len(scores)
+
+
 def categorical_cross_entropy(
     target: Sequence[float],
     probabilities: Sequence[float],
@@ -154,6 +197,8 @@ def categorical_cross_entropy_batch(
 
 __all__ = [
     "binary_cross_entropy",
+    "brier_score",
+    "brier_score_batch",
     "categorical_cross_entropy",
     "categorical_cross_entropy_batch",
     "categorical_entropy",

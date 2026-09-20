@@ -47,6 +47,16 @@ from deeplearn_utils import stratified_split
 train_indices, validation_indices = stratified_split(labels, validation_fraction=0.2, seed=42)
 ```
 
+## Probability calibration
+
+`brier_score` and `brier_score_batch` measure squared probability error for multiclass predictions. Lower scores indicate better probabilistic forecasts, and soft targets are supported alongside the existing expected calibration error helper:
+
+```python
+from deeplearn_utils import brier_score
+
+score = brier_score(target_distribution, predicted_probabilities)
+```
+
 ## Classification losses
 
 `categorical_cross_entropy` and `categorical_cross_entropy_batch` evaluate normalized hard or soft target distributions with stable probability clipping. They work directly with the output of `label_smoothed_targets`:

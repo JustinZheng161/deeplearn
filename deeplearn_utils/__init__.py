@@ -12,7 +12,12 @@ from .schedules import warmup_cosine_decay
 from .regression import mean_absolute_error, mean_squared_error, r2_score
 from .targets import label_smoothed_targets
 from .preprocessing import MinMaxScaler, RobustScaler, StandardScaler
-from .probabilities import categorical_cross_entropy, categorical_cross_entropy_batch
+from .probabilities import (
+    brier_score,
+    brier_score_batch,
+    categorical_cross_entropy,
+    categorical_cross_entropy_batch,
+)
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -54,6 +59,8 @@ __all__ = [
     "make_worker_init_fn",
     "seed_everything",
     "accuracy",
+    "brier_score",
+    "brier_score_batch",
     "categorical_cross_entropy",
     "categorical_cross_entropy_batch",
     "stratified_kfold",
