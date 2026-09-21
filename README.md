@@ -181,6 +181,17 @@ probabilities = softmax(logits)
 uncertainty = categorical_entropy(probabilities)
 ```
 
+## Binary decision thresholds
+
+`best_threshold` selects a validation threshold for F1, balanced accuracy, or Youden's J statistic. This is useful when a neural classifier's default `0.5` cutoff is not appropriate for an imbalanced or cost-sensitive task:
+
+```python
+from deeplearn_utils import best_threshold, binary_predictions
+
+result = best_threshold(validation_probabilities, validation_labels, objective="f1")
+predictions = binary_predictions(test_probabilities, result.threshold)
+```
+
 ## Development
 
 Run the test suite with:

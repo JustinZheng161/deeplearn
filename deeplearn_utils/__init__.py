@@ -51,6 +51,7 @@ from .probabilities import (
     softmax,
     softmax_batch,
 )
+from .thresholds import ThresholdResult, best_threshold, binary_predictions, confusion_at_threshold
 
 __all__ = [
     "SeedReport",
@@ -103,4 +104,8 @@ __all__ = [
     "sigmoid",
     "softmax",
     "softmax_batch",
+    "ThresholdResult",
+    "best_threshold",
+    "binary_predictions",
+    "confusion_at_threshold",
 ]
