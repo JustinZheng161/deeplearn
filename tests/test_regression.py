@@ -30,3 +30,25 @@ def test_regression_metrics_reject_non_finite_values():
         mean_squared_error([1.0], [float("nan")])
     with pytest.raises(TypeError, match="only numbers"):
         mean_absolute_error([1.0], ["1"])
+
+
+def test_huber_loss_uses_quadratic_and_linear_regions():
+    from deeplearn_utils import huber_loss
+
+    assert huber_loss(3.0, 2.5, delta=1.0) == pytest.approx(0.125)
+    assert huber_loss(4.0, 1.0, delta=1.0) == pytest.approx(2.5)
+    assert huber_loss(1.0, 1.0) == 0.0
+
+
+def test_huber_loss_batch_returns_mean():
+    from deeplearn_utils import huber_loss_batch
+
+    assert huber_loss_batch([0, 3], [1, 1], delta=1.0) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("delta", [0, -1, float("inf"), True, "1"])
+def test_huber_loss_validates_delta(delta):
+    from deeplearn_utils import huber_loss
+
+    with pytest.raises((TypeError, ValueError)):
+        huber_loss(1, 2, delta=delta)

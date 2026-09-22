@@ -77,6 +77,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Regression losses
+
+`huber_loss` combines a quadratic penalty for small errors with a linear penalty for large errors, making it useful when regression data contains outliers. `huber_loss_batch` returns the mean over a batch:
+
+```python
+from deeplearn_utils import huber_loss_batch
+
+loss = huber_loss_batch(targets, predictions, delta=1.0)
+```
+
 ## Regression metrics
 
 The package also provides dependency-free `mean_absolute_error`, `mean_squared_error`, and `r2_score` helpers for regression models. Constant targets are handled explicitly so evaluation does not emit an undefined result:

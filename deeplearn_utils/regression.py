@@ -57,4 +57,42 @@ def r2_score(targets: Sequence[float], predictions: Sequence[float]) -> float:
     return 1.0 - residual / total
 
 
-__all__ = ["mean_absolute_error", "mean_squared_error", "r2_score"]
+def huber_loss(actual: float, predicted: float, *, delta: float = 1.0) -> float:
+    """Return the Huber loss for one regression prediction.
+
+    Errors within ``delta`` use a quadratic penalty; larger errors use a
+    linear penalty, limiting the influence of mislabeled or noisy examples.
+    """
+    for name, value in (("actual", actual), ("predicted", predicted)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"{name} must be a number")
+        if not math.isfinite(value):
+            raise ValueError(f"{name} must be finite")
+    if isinstance(delta, bool) or not isinstance(delta, (int, float)):
+        raise TypeError("delta must be a number")
+    if not math.isfinite(delta) or delta <= 0:
+        raise ValueError("delta must be positive and finite")
+    error = abs(float(actual) - float(predicted))
+    if error <= delta:
+        return 0.5 * error * error
+    return float(delta) * (error - 0.5 * float(delta))
+
+
+def huber_loss_batch(
+    actual: Sequence[float], predicted: Sequence[float], *, delta: float = 1.0
+) -> float:
+    """Return the mean Huber loss across a regression batch."""
+    if isinstance(actual, (str, bytes)) or isinstance(predicted, (str, bytes)):
+        raise TypeError("actual and predicted must be sequences")
+    actual_values = list(actual)
+    predicted_values = list(predicted)
+    if not actual_values or not predicted_values:
+        raise ValueError("actual and predicted must not be empty")
+    if len(actual_values) != len(predicted_values):
+        raise ValueError("actual and predicted must have the same length")
+    losses = [huber_loss(left, right, delta=delta)
+              for left, right in zip(actual_values, predicted_values)]
+    return sum(losses) / len(losses)
+
+
+__all__ = ["huber_loss", "huber_loss_batch", "mean_absolute_error", "mean_squared_error", "r2_score"]
