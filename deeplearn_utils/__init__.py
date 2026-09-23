@@ -58,6 +58,14 @@ from .probabilities import (
     softmax_batch,
 )
 from .thresholds import ThresholdResult, best_threshold, binary_predictions, confusion_at_threshold
+from .retrieval import (
+    cosine_similarity,
+    mean_average_precision,
+    mean_reciprocal_rank,
+    ranked_indices,
+    recall_at_k,
+    similarity_matrix,
+)
 
 __all__ = [
     "SeedReport",
@@ -116,4 +124,10 @@ __all__ = [
     "best_threshold",
     "binary_predictions",
     "confusion_at_threshold",
+    "cosine_similarity",
+    "mean_average_precision",
+    "mean_reciprocal_rank",
+    "ranked_indices",
+    "recall_at_k",
+    "similarity_matrix",
 ]

@@ -202,6 +202,17 @@ result = best_threshold(validation_probabilities, validation_labels, objective="
 predictions = binary_predictions(test_probabilities, result.threshold)
 ```
 
+## Embedding retrieval
+
+For representation-learning and nearest-neighbor experiments, the package provides cosine similarity, pairwise similarity matrices, stable ranking, recall@k, mean reciprocal rank, and mean average precision:
+
+```python
+from deeplearn_utils import mean_reciprocal_rank, similarity_matrix
+
+scores = similarity_matrix(query_embeddings, candidate_embeddings)
+retrieval_mrr = mean_reciprocal_rank(ranked_candidate_ids, relevant_candidate_ids)
+```
+
 ## Development
 
 Run the test suite with:
