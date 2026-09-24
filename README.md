@@ -47,6 +47,17 @@ from deeplearn_utils import stratified_split
 train_indices, validation_indices = stratified_split(labels, validation_fraction=0.2, seed=42)
 ```
 
+## Retrieval ranking metrics
+
+For embedding retrieval, `precision_at_k` measures the fraction of top-k results that are relevant, while `ndcg_at_k` rewards relevant results appearing earlier in the ranking. Both complement the existing recall, mean average precision, and mean reciprocal rank helpers:
+
+```python
+from deeplearn_utils import ndcg_at_k, precision_at_k
+
+precision = precision_at_k(ranked_ids, relevant_ids, k=10)
+ndcg = ndcg_at_k(ranked_ids, relevant_ids, k=10)
+```
+
 ## Probability calibration
 
 `brier_score` and `brier_score_batch` measure squared probability error for multiclass predictions. Lower scores indicate better probabilistic forecasts, and soft targets are supported alongside the existing expected calibration error helper:

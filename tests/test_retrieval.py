@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from deeplearn_utils import (
@@ -78,3 +80,21 @@ def test_ranking_metrics_validate_duplicates_and_lengths():
         mean_reciprocal_rank([[0, 0]], [[0]])
     with pytest.raises(ValueError, match="same non-zero"):
         recall_at_k([[0]], [])
+
+
+def test_precision_and_ndcg_reward_relevant_items_near_the_top():
+    from deeplearn_utils import ndcg_at_k, precision_at_k
+
+    ranked = [[2, 0, 1], [1, 3, 2]]
+    relevant = [[0, 1], [2, 3]]
+    assert precision_at_k(ranked, relevant, k=2) == pytest.approx(0.5)
+    ideal = 1.0 + 1.0 / math.log2(3)
+    expected = (1.0 / math.log2(3) + 1.0 / math.log2(4)) / ideal
+    assert ndcg_at_k(ranked, relevant, k=3) == pytest.approx(expected)
+
+
+def test_precision_and_ndcg_return_zero_without_relevant_hits():
+    from deeplearn_utils import ndcg_at_k, precision_at_k
+
+    assert precision_at_k([[0, 1]], [[3]], k=2) == 0.0
+    assert ndcg_at_k([[0, 1]], [[]], k=2) == 0.0

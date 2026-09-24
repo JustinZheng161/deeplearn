@@ -75,6 +75,44 @@ def recall_at_k(
     return sum(recalls) / len(recalls)
 
 
+def precision_at_k(
+    ranked: Sequence[Sequence[int]], relevant: Sequence[Sequence[int]], *, k: int = 10
+) -> float:
+    """Return mean precision among the first ``k`` ranked results."""
+    rankings, relevant_sets = _validate_rankings(ranked, relevant, k)
+    precisions = [
+        len(set(ranking[:k]) & expected) / min(k, len(ranking))
+        if ranking[:k] else 0.0
+        for ranking, expected in zip(rankings, relevant_sets)
+    ]
+    return sum(precisions) / len(precisions)
+
+
+def ndcg_at_k(
+    ranked: Sequence[Sequence[int]], relevant: Sequence[Sequence[int]], *, k: int = 10
+) -> float:
+    """Return mean normalized discounted cumulative gain at ``k``.
+
+    Relevance is binary: items in each corresponding ``relevant`` set receive
+    one point. Queries without relevant items contribute zero rather than NaN.
+    """
+    rankings, relevant_sets = _validate_rankings(ranked, relevant, k)
+    scores = []
+    for ranking, expected in zip(rankings, relevant_sets):
+        if not expected:
+            scores.append(0.0)
+            continue
+        dcg = sum(
+            1.0 / math.log2(position + 2)
+            for position, item in enumerate(ranking[:k])
+            if item in expected
+        )
+        ideal_hits = min(len(expected), k, len(ranking))
+        ideal = sum(1.0 / math.log2(position + 2) for position in range(ideal_hits))
+        scores.append(dcg / ideal if ideal else 0.0)
+    return sum(scores) / len(scores)
+
+
 def mean_reciprocal_rank(
     ranked: Sequence[Sequence[int]], relevant: Sequence[Sequence[int]]
 ) -> float:
@@ -130,6 +168,8 @@ def _validate_rankings(
 __all__ = [
     "cosine_similarity",
     "mean_average_precision",
+    "ndcg_at_k",
+    "precision_at_k",
     "mean_reciprocal_rank",
     "ranked_indices",
     "recall_at_k",
