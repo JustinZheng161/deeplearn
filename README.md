@@ -224,6 +224,17 @@ scores = similarity_matrix(query_embeddings, candidate_embeddings)
 retrieval_mrr = mean_reciprocal_rank(ranked_candidate_ids, relevant_candidate_ids)
 ```
 
+## Training losses
+
+The package includes framework-agnostic `binary_focal_loss` and `multiclass_focal_loss` helpers for imbalanced classification, plus `dice_coefficient` and `dice_loss` for soft binary-mask overlap. All accept ordinary Python sequences and clip probability boundaries safely:
+
+```python
+from deeplearn_utils import binary_focal_loss, dice_loss
+
+classification_loss = binary_focal_loss(labels, positive_probabilities, gamma=2.0)
+segmentation_loss = dice_loss(mask, predicted_probabilities)
+```
+
 ## Development
 
 Run the test suite with:

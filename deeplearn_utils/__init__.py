@@ -42,6 +42,7 @@ from .training import (
     iter_minibatches,
 )
 from .history import BestMetric, EpochRecord, MetricHistory
+from .losses import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -133,4 +134,8 @@ __all__ = [
     "ranked_indices",
     "recall_at_k",
     "similarity_matrix",
+    "binary_focal_loss",
+    "dice_coefficient",
+    "dice_loss",
+    "multiclass_focal_loss",
 ]
