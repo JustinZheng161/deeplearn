@@ -25,6 +25,7 @@ from .probabilities import (
     categorical_cross_entropy_batch,
 )
 from .retrieval import ndcg_at_k, precision_at_k
+from .losses import tversky_index, tversky_loss
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -76,6 +77,8 @@ __all__ = [
     "make_worker_init_fn",
     "seed_everything",
     "accuracy",
+    "tversky_index",
+    "tversky_loss",
     "ndcg_at_k",
     "precision_at_k",
     "brier_score",

@@ -87,6 +87,50 @@ def dice_coefficient(
     return (2.0 * intersection + smooth) / (denominator + smooth)
 
 
+def tversky_index(
+    targets: Sequence[float],
+    probabilities: Sequence[float],
+    *,
+    alpha: float = 0.5,
+    beta: float = 0.5,
+    smooth: float = 1.0,
+) -> float:
+    """Return the soft Tversky index for binary segmentation masks.
+
+    ``alpha`` weights false positives and ``beta`` weights false negatives,
+    allowing minority-object segmentation to penalize missed foreground more.
+    """
+    labels = list(targets)
+    scores = list(probabilities)
+    if not labels or len(labels) != len(scores):
+        raise ValueError("targets and probabilities must have the same non-zero length")
+    for name, value in (("alpha", alpha), ("beta", beta), ("smooth", smooth)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"{name} must be a number")
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"{name} must be finite and non-negative")
+    if alpha + beta == 0:
+        raise ValueError("alpha and beta cannot both be zero")
+    target_values = [_probability(value, "targets") for value in labels]
+    probability_values = [_probability(value, "probabilities") for value in scores]
+    true_positive = sum(target * probability for target, probability in zip(target_values, probability_values))
+    false_positive = sum((1.0 - target) * probability for target, probability in zip(target_values, probability_values))
+    false_negative = sum(target * (1.0 - probability) for target, probability in zip(target_values, probability_values))
+    return (true_positive + smooth) / (true_positive + alpha * false_positive + beta * false_negative + smooth)
+
+
+def tversky_loss(
+    targets: Sequence[float],
+    probabilities: Sequence[float],
+    *,
+    alpha: float = 0.5,
+    beta: float = 0.5,
+    smooth: float = 1.0,
+) -> float:
+    """Return one minus :func:`tversky_index`."""
+    return 1.0 - tversky_index(targets, probabilities, alpha=alpha, beta=beta, smooth=smooth)
+
+
 def dice_loss(
     targets: Sequence[float], probabilities: Sequence[float], *, smooth: float = 1.0
 ) -> float:
@@ -94,4 +138,11 @@ def dice_loss(
     return 1.0 - dice_coefficient(targets, probabilities, smooth=smooth)
 
 
-__all__ = ["binary_focal_loss", "dice_coefficient", "dice_loss", "multiclass_focal_loss"]
+__all__ = [
+    "binary_focal_loss",
+    "dice_coefficient",
+    "dice_loss",
+    "multiclass_focal_loss",
+    "tversky_index",
+    "tversky_loss",
+]

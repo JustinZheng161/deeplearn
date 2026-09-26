@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Segmentation losses
+
+`tversky_loss` extends Dice-style overlap losses with separate weights for false positives and false negatives, which is useful for imbalanced foreground segmentation:
+
+```python
+from deeplearn_utils import tversky_loss
+
+loss = tversky_loss(mask, predicted_mask, alpha=0.3, beta=0.7)
+```
+
 ## Regression losses
 
 `huber_loss` combines a quadratic penalty for small errors with a linear penalty for large errors, making it useful when regression data contains outliers. `huber_loss_batch` returns the mean over a batch:

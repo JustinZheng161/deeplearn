@@ -70,3 +70,20 @@ def test_dice_validates_values_and_shapes():
 def test_focal_loss_is_finite_at_probability_boundaries():
     assert math.isfinite(binary_focal_loss([1, 0], [1.0, 0.0]))
     assert math.isfinite(multiclass_focal_loss([0], [[1.0, 0.0]]))
+
+
+def test_tversky_index_weights_false_negatives_and_complements_loss():
+    from deeplearn_utils import tversky_index, tversky_loss
+
+    index = tversky_index([1, 1, 0, 0], [0.9, 0.2, 0.8, 0.1], alpha=0.3, beta=0.7)
+    assert 0.0 < index < 1.0
+    assert tversky_loss([1, 1, 0, 0], [0.9, 0.2, 0.8, 0.1], alpha=0.3, beta=0.7) == pytest.approx(1 - index)
+    assert tversky_index([1, 0], [1, 0], smooth=0) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("alpha,beta", [(0, 0), (-1, 1), (1, -1), (True, 1)])
+def test_tversky_validates_error_weights(alpha, beta):
+    from deeplearn_utils import tversky_index
+
+    with pytest.raises((TypeError, ValueError)):
+        tversky_index([1], [0.5], alpha=alpha, beta=beta)
