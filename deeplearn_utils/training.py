@@ -65,6 +65,40 @@ def iter_minibatches(
         yield ([features[index] for index in indices], [targets[index] for index in indices])
 
 
+def clip_by_global_norm(
+    gradients: Sequence[Sequence[float]], max_norm: float
+) -> tuple[list[list[float]], float]:
+    """Clip gradient rows by one global L2 norm and return original norm.
+
+    The returned gradients preserve shape and are scaled uniformly when the
+    global norm exceeds ``max_norm``. Empty rows are allowed, but the outer
+    sequence must contain at least one gradient vector.
+    """
+    if isinstance(gradients, (str, bytes)):
+        raise TypeError("gradients must be a sequence of vectors")
+    try:
+        rows = [list(row) for row in gradients]
+    except TypeError as exc:
+        raise TypeError("gradients must be a sequence of vectors") from exc
+    if not rows:
+        raise ValueError("gradients must not be empty")
+    if isinstance(max_norm, bool) or not isinstance(max_norm, (int, float)):
+        raise TypeError("max_norm must be a number")
+    if max_norm <= 0:
+        raise ValueError("max_norm must be positive")
+    squared = 0.0
+    for row in rows:
+        for value in row:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError("gradients must contain numbers")
+            squared += float(value) ** 2
+    global_norm = squared ** 0.5
+    if global_norm == 0 or global_norm <= max_norm:
+        return [[float(value) for value in row] for row in rows], global_norm
+    scale = float(max_norm) / global_norm
+    return [[float(value) * scale for value in row] for row in rows], global_norm
+
+
 @dataclass
 class RunningAverage:
     """Track a weighted mean such as loss over batches of unequal size."""
@@ -167,6 +201,7 @@ class EarlyStopping:
 __all__ = [
     "EarlyStopping",
     "EarlyStoppingState",
+    "clip_by_global_norm",
     "RunningAverage",
     "batch_indices",
     "iter_minibatches",

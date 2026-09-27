@@ -99,3 +99,28 @@ def test_early_stopping_max_mode_and_min_delta():
 def test_early_stopping_validates_configuration(kwargs):
     with pytest.raises((TypeError, ValueError)):
         EarlyStopping(**kwargs)
+
+
+def test_clip_by_global_norm_scales_all_gradients_uniformly():
+    from deeplearn_utils import clip_by_global_norm
+
+    clipped, original_norm = clip_by_global_norm([[3.0, 4.0], [0.0]], max_norm=2.0)
+    assert original_norm == pytest.approx(5.0)
+    assert clipped[0] == pytest.approx([1.2, 1.6])
+    assert clipped[1] == [0.0]
+
+
+def test_clip_by_global_norm_copies_gradients_below_limit():
+    from deeplearn_utils import clip_by_global_norm
+
+    clipped, original_norm = clip_by_global_norm([[0.3], []], max_norm=2.0)
+    assert clipped == [[0.3], []]
+    assert original_norm == pytest.approx(0.3)
+
+
+@pytest.mark.parametrize("max_norm", [0, -1, True, "1"])
+def test_clip_by_global_norm_validates_limit(max_norm):
+    from deeplearn_utils import clip_by_global_norm
+
+    with pytest.raises((TypeError, ValueError)):
+        clip_by_global_norm([[1.0]], max_norm)

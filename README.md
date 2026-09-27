@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Gradient clipping
+
+`clip_by_global_norm` rescales a batch of gradient vectors uniformly when their combined L2 norm exceeds a limit, helping stabilize recurrent and transformer training:
+
+```python
+from deeplearn_utils import clip_by_global_norm
+
+clipped_gradients, original_norm = clip_by_global_norm(gradients, max_norm=1.0)
+```
+
 ## Segmentation losses
 
 `tversky_loss` extends Dice-style overlap losses with separate weights for false positives and false negatives, which is useful for imbalanced foreground segmentation:
