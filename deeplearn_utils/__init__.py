@@ -45,6 +45,7 @@ from .training import (
 )
 from .history import BestMetric, EpochRecord, MetricHistory
 from .losses import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss
+from .calibration import CalibrationBin, TemperatureScaler, calibrated_probabilities, negative_log_likelihood, reliability_bins
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -143,4 +144,9 @@ __all__ = [
     "dice_coefficient",
     "dice_loss",
     "multiclass_focal_loss",
+    "CalibrationBin",
+    "TemperatureScaler",
+    "calibrated_probabilities",
+    "negative_log_likelihood",
+    "reliability_bins",
 ]

@@ -255,6 +255,18 @@ classification_loss = binary_focal_loss(labels, positive_probabilities, gamma=2.
 segmentation_loss = dice_loss(mask, predicted_probabilities)
 ```
 
+## Probability calibration
+
+`TemperatureScaler` fits one positive temperature on validation logits by minimizing negative log likelihood. Use it to soften overconfident neural-network probabilities without changing the predicted class; `reliability_bins` provides a compact calibration summary:
+
+```python
+from deeplearn_utils import TemperatureScaler, reliability_bins
+
+scaler = TemperatureScaler().fit(validation_logits, validation_labels)
+test_probabilities = scaler.transform(test_logits)
+bins = reliability_bins(test_logits, test_labels, bins=10)
+```
+
 ## Development
 
 Run the test suite with:
