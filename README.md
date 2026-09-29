@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Class-balanced training weights
+
+`class_balanced_weights` creates per-sample weights from inverse class frequency and normalizes them to mean one. The `power` parameter lets a training loop use partial correction instead of fully compensating for imbalance:
+
+```python
+from deeplearn_utils import class_balanced_weights
+
+weights = class_balanced_weights(labels, power=1.0)
+```
+
 ## Gradient clipping
 
 `clip_by_global_norm` rescales a batch of gradient vectors uniformly when their combined L2 norm exceeds a limit, helping stabilize recurrent and transformer training:

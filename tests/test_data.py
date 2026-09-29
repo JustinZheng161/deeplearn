@@ -73,3 +73,27 @@ def test_stratified_kfold_is_reproducible_and_has_complete_train_sets():
 def test_stratified_kfold_validates_fold_count(folds):
     with pytest.raises((TypeError, ValueError)):
         stratified_kfold([0, 1, 2, 3], folds)
+
+
+def test_class_balanced_weights_invert_frequency_and_normalize_mean():
+    from deeplearn_utils import class_balanced_weights
+
+    weights = class_balanced_weights([0, 0, 0, 1])
+    assert weights[:3] == pytest.approx([2 / 3] * 3)
+    assert weights[3] == pytest.approx(2.0)
+    assert sum(weights) / len(weights) == pytest.approx(1.0)
+
+
+def test_class_balanced_weights_supports_partial_correction():
+    from deeplearn_utils import class_balanced_weights
+
+    weights = class_balanced_weights([0, 0, 1], power=0)
+    assert weights == pytest.approx([1.0, 1.0, 1.0])
+
+
+@pytest.mark.parametrize("power", [-1, True, "1"])
+def test_class_balanced_weights_validates_power(power):
+    from deeplearn_utils import class_balanced_weights
+
+    with pytest.raises((TypeError, ValueError)):
+        class_balanced_weights([0, 1], power=power)

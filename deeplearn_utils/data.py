@@ -59,6 +59,34 @@ def stratified_split(
     return train, validation
 
 
+def class_balanced_weights(labels: Sequence[Any], *, power: float = 1.0) -> list[float]:
+    """Return per-sample inverse-frequency weights normalized to mean one.
+
+    ``power`` controls the correction strength: zero gives uniform weights,
+    while one applies full inverse-frequency weighting. Labels must be
+    hashable so the result can be used with common weighted samplers.
+    """
+    if isinstance(labels, (str, bytes)) or not isinstance(labels, Sequence):
+        raise TypeError("labels must be a non-string sequence")
+    if not labels:
+        raise ValueError("labels must not be empty")
+    if isinstance(power, bool) or not isinstance(power, (int, float)):
+        raise TypeError("power must be a number")
+    if power < 0:
+        raise ValueError("power must be non-negative")
+    counts: dict[Any, int] = {}
+    for label in labels:
+        try:
+            counts[label] = counts.get(label, 0) + 1
+        except TypeError as exc:
+            raise TypeError("labels must contain hashable values") from exc
+    raw = []
+    for label in labels:
+        raw.append(counts[label] ** (-float(power)))
+    mean = sum(raw) / len(raw)
+    return [weight / mean for weight in raw]
+
+
 def stratified_kfold(
     labels: Sequence[Any], folds: int, *, seed: int | None = None
 ) -> list[tuple[list[int], list[int]]]:

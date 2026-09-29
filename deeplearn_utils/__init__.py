@@ -7,7 +7,7 @@ from .reproducibility import (
     make_worker_init_fn,
     seed_everything,
 )
-from .data import stratified_kfold, stratified_split
+from .data import class_balanced_weights, stratified_kfold, stratified_split
 from .schedules import warmup_cosine_decay
 from .regression import (
     huber_loss,
@@ -87,6 +87,7 @@ __all__ = [
     "brier_score_batch",
     "categorical_cross_entropy",
     "categorical_cross_entropy_batch",
+    "class_balanced_weights",
     "stratified_kfold",
     "stratified_split",
     "warmup_cosine_decay",
