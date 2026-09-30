@@ -277,6 +277,18 @@ test_probabilities = scaler.transform(test_logits)
 bins = reliability_bins(test_logits, test_labels, bins=10)
 ```
 
+## Ensemble uncertainty
+
+For ensembles or Monte Carlo dropout, `ensemble_mean` aggregates class probabilities, while `predictive_entropy`, `mutual_information`, and `variation_ratio` quantify total uncertainty, disagreement, and vote instability:
+
+```python
+from deeplearn_utils import summarize_ensemble
+
+summaries = summarize_ensemble(member_probabilities)
+for summary in summaries:
+    print(summary.predictive_entropy, summary.mutual_information)
+```
+
 ## Development
 
 Run the test suite with:
