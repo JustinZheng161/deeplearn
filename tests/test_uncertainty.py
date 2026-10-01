@@ -81,3 +81,21 @@ def test_variation_ratio_validates_classes():
         variation_ratio([])
     with pytest.raises(TypeError):
         variation_ratio([True])
+
+
+def test_risk_coverage_curve_keeps_confident_correct_predictions_first():
+    from deeplearn_utils import risk_coverage_curve
+
+    points = risk_coverage_curve([0.6, 0.9, 0.8], [False, True, True])
+    assert points == pytest.approx([(1 / 3, 0.0), (2 / 3, 0.0), (1.0, 1 / 3)])
+
+
+def test_risk_coverage_curve_validates_inputs():
+    from deeplearn_utils import risk_coverage_curve
+
+    with pytest.raises(ValueError, match="same non-zero"):
+        risk_coverage_curve([], [])
+    with pytest.raises(ValueError, match="between"):
+        risk_coverage_curve([1.2], [True])
+    with pytest.raises(TypeError, match="booleans"):
+        risk_coverage_curve([0.5], [1])

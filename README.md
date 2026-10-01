@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Selective prediction
+
+`risk_coverage_curve` evaluates confidence-based abstention by returning coverage and error-risk points after retaining the most confident predictions first:
+
+```python
+from deeplearn_utils import risk_coverage_curve
+
+curve = risk_coverage_curve(confidences, correct_predictions)
+```
+
 ## Class-balanced training weights
 
 `class_balanced_weights` creates per-sample weights from inverse class frequency and normalizes them to mean one. The `power` parameter lets a training loop use partial correction instead of fully compensating for imbalance:

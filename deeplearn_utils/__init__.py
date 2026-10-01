@@ -26,6 +26,7 @@ from .probabilities import (
 )
 from .retrieval import ndcg_at_k, precision_at_k
 from .losses import tversky_index, tversky_loss
+from .uncertainty import risk_coverage_curve
 from .metrics import (
     accuracy,
     balanced_accuracy,
@@ -82,6 +83,7 @@ __all__ = [
     "accuracy",
     "tversky_index",
     "tversky_loss",
+    "risk_coverage_curve",
     "ndcg_at_k",
     "precision_at_k",
     "brier_score",

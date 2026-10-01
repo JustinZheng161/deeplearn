@@ -78,6 +78,37 @@ def variation_ratio(predicted_classes: Sequence[int]) -> float:
     return 1.0 - max(Counter(values).values()) / len(values)
 
 
+def risk_coverage_curve(
+    confidences: Sequence[float], correct: Sequence[bool]
+) -> list[tuple[float, float]]:
+    """Return ``(coverage, risk)`` points for confidence-based abstention.
+
+    Samples are retained from highest to lowest confidence. Each point reports
+    the retained fraction and its error rate, making selective prediction
+    trade-offs easy to plot or compare without a plotting dependency.
+    """
+    if isinstance(confidences, (str, bytes)) or isinstance(correct, (str, bytes)):
+        raise TypeError("confidences and correct must be sequences")
+    confidence_values = list(confidences)
+    correctness = list(correct)
+    if not confidence_values or len(confidence_values) != len(correctness):
+        raise ValueError("confidences and correct must have the same non-zero length")
+    for confidence in confidence_values:
+        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+            raise TypeError("confidences must contain numbers")
+        if not math.isfinite(confidence) or not 0 <= confidence <= 1:
+            raise ValueError("confidences must be between zero and one")
+    if any(not isinstance(value, bool) for value in correctness):
+        raise TypeError("correct must contain booleans")
+    order = sorted(range(len(confidence_values)), key=lambda index: confidence_values[index], reverse=True)
+    errors = 0
+    points = []
+    for retained, index in enumerate(order, start=1):
+        errors += not correctness[index]
+        points.append((retained / len(order), errors / retained))
+    return points
+
+
 @dataclass(frozen=True)
 class UncertaintySummary:
     """Per-sample ensemble uncertainty summary."""
@@ -108,6 +139,7 @@ __all__ = [
     "entropy",
     "mutual_information",
     "predictive_entropy",
+    "risk_coverage_curve",
     "summarize_ensemble",
     "variation_ratio",
 ]
