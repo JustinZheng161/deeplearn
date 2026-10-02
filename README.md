@@ -299,6 +299,16 @@ for summary in summaries:
     print(summary.predictive_entropy, summary.mutual_information)
 ```
 
+## Metric learning
+
+For embedding models, `contrastive_loss` and `triplet_margin_loss` provide pairwise and triplet objectives. `batch_hard_triplet_loss` mines the hardest valid positive and negative in a batch, while `pairwise_distance_matrix` is useful for diagnostics:
+
+```python
+from deeplearn_utils import batch_hard_triplet_loss
+
+loss = batch_hard_triplet_loss(embeddings, labels, margin=1.0)
+```
+
 ## Development
 
 Run the test suite with:

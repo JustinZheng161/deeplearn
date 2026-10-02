@@ -48,6 +48,7 @@ from .history import BestMetric, EpochRecord, MetricHistory
 from .losses import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss
 from .calibration import CalibrationBin, TemperatureScaler, calibrated_probabilities, negative_log_likelihood, reliability_bins
 from .uncertainty import UncertaintySummary, ensemble_mean, entropy, mutual_information, predictive_entropy, summarize_ensemble, variation_ratio
+from .metric_learning import batch_hard_triplet_loss, contrastive_loss, pairwise_distance_matrix, triplet_margin_loss
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -160,4 +161,8 @@ __all__ = [
     "predictive_entropy",
     "summarize_ensemble",
     "variation_ratio",
+    "batch_hard_triplet_loss",
+    "contrastive_loss",
+    "pairwise_distance_matrix",
+    "triplet_margin_loss",
 ]
