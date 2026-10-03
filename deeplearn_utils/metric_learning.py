@@ -84,6 +84,43 @@ def triplet_margin_loss(
     return sum(losses) / len(losses)
 
 
+def supervised_contrastive_loss(
+    embeddings: Sequence[Sequence[float]],
+    labels: Sequence[int],
+    *,
+    temperature: float = 0.1,
+) -> float:
+    """Return supervised contrastive loss over a labeled embedding batch."""
+    rows = _vectors(embeddings)
+    targets = list(labels)
+    if len(rows) != len(targets):
+        raise ValueError("embeddings and labels must have the same length")
+    if any(isinstance(label, bool) or not isinstance(label, int) for label in targets):
+        raise TypeError("labels must contain integer class indices")
+    if isinstance(temperature, bool) or not isinstance(temperature, (int, float)):
+        raise TypeError("temperature must be a number")
+    if not math.isfinite(temperature) or temperature <= 0:
+        raise ValueError("temperature must be positive and finite")
+    norms = [math.sqrt(sum(value * value for value in row)) for row in rows]
+    if any(norm == 0 for norm in norms):
+        raise ValueError("embeddings must not contain zero vectors")
+    normalized = [[value / norm for value in row] for row, norm in zip(rows, norms)]
+    losses = []
+    for anchor, label in enumerate(targets):
+        positive_indices = [index for index, value in enumerate(targets) if index != anchor and value == label]
+        if not positive_indices:
+            continue
+        logits = [sum(left * right for left, right in zip(normalized[anchor], row)) / temperature
+                  for index, row in enumerate(normalized) if index != anchor]
+        maximum = max(logits)
+        log_denominator = maximum + math.log(sum(math.exp(logit - maximum) for logit in logits))
+        positive_logits = [logits[index - (index > anchor)] for index in positive_indices]
+        losses.append(sum(log_denominator - logit for logit in positive_logits) / len(positive_logits))
+    if not losses:
+        raise ValueError("batch must contain at least one class with two samples")
+    return sum(losses) / len(losses)
+
+
 def pairwise_distance_matrix(
     embeddings: Sequence[Sequence[float]], *, squared: bool = False
 ) -> list[list[float]]:
@@ -114,4 +151,10 @@ def batch_hard_triplet_loss(
     return sum(losses) / len(losses)
 
 
-__all__ = ["batch_hard_triplet_loss", "contrastive_loss", "pairwise_distance_matrix", "triplet_margin_loss"]
+__all__ = [
+    "batch_hard_triplet_loss",
+    "contrastive_loss",
+    "pairwise_distance_matrix",
+    "supervised_contrastive_loss",
+    "triplet_margin_loss",
+]

@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Supervised contrastive learning
+
+`supervised_contrastive_loss` uses same-label embeddings as positive pairs and all other examples as negatives, making it suitable for representation learning with multiple labeled views per class:
+
+```python
+from deeplearn_utils import supervised_contrastive_loss
+
+loss = supervised_contrastive_loss(embeddings, labels, temperature=0.1)
+```
+
 ## Selective prediction
 
 `risk_coverage_curve` evaluates confidence-based abstention by returning coverage and error-risk points after retaining the most confident predictions first:

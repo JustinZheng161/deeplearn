@@ -69,3 +69,29 @@ def test_metric_losses_validate_margin_and_dimensions():
         contrastive_loss([[0]], [[1]], [1], margin=0)
     with pytest.raises(ValueError, match="dimension"):
         triplet_margin_loss([[0]], [[0, 1]], [[1]])
+
+
+def test_supervised_contrastive_loss_is_finite_and_uses_same_class_positives():
+    from deeplearn_utils import supervised_contrastive_loss
+
+    loss = supervised_contrastive_loss([[1, 0], [0.9, 0.1], [-1, 0], [-0.9, 0.1]], [0, 0, 1, 1])
+    assert loss >= 0.0
+    mixed = supervised_contrastive_loss([[1, 0], [0, 1], [-1, 0], [0, -1]], [0, 0, 1, 1])
+    assert loss < mixed
+
+
+@pytest.mark.parametrize("temperature", [0, -1, True, "0.1"])
+def test_supervised_contrastive_validates_temperature(temperature):
+    from deeplearn_utils import supervised_contrastive_loss
+
+    with pytest.raises((TypeError, ValueError)):
+        supervised_contrastive_loss([[1, 0], [0, 1]], [0, 1], temperature=temperature)
+
+
+def test_supervised_contrastive_rejects_zero_vectors_and_singletons():
+    from deeplearn_utils import supervised_contrastive_loss
+
+    with pytest.raises(ValueError, match="zero vectors"):
+        supervised_contrastive_loss([[0, 0], [1, 0]], [0, 0])
+    with pytest.raises(ValueError, match="two samples"):
+        supervised_contrastive_loss([[1, 0], [0, 1]], [0, 1])
