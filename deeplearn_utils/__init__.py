@@ -57,7 +57,12 @@ from .augmentation import (
     random_feature_dropout,
     inverted_feature_dropout,
 )
-from .validation import fold_class_counts, kfold_indices, stratified_kfold_indices
+from .validation import (
+    bootstrap_mean_interval,
+    fold_class_counts,
+    kfold_indices,
+    stratified_kfold_indices,
+)
 from .probabilities import (
     binary_cross_entropy,
     categorical_entropy,
@@ -93,6 +98,7 @@ __all__ = [
     "brier_score_batch",
     "categorical_cross_entropy",
     "categorical_cross_entropy_batch",
+    "bootstrap_mean_interval",
     "class_balanced_weights",
     "stratified_kfold",
     "stratified_split",

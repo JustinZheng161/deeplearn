@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Bootstrap metric intervals
+
+`bootstrap_mean_interval` estimates a metric mean and a percentile confidence interval without adding a numerical dependency. A fixed seed makes experiment reports reproducible:
+
+```python
+from deeplearn_utils import bootstrap_mean_interval
+
+mean, lower, upper = bootstrap_mean_interval(validation_scores, seed=42)
+```
+
 ## Supervised contrastive learning
 
 `supervised_contrastive_loss` uses same-label embeddings as positive pairs and all other examples as negatives, making it suitable for representation learning with multiple labeled views per class:

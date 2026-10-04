@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 from collections.abc import Sequence
 from typing import Any, Iterator
@@ -87,6 +88,48 @@ def stratified_kfold_indices(
         yield train, validation
 
 
+def bootstrap_mean_interval(
+    values: Sequence[float],
+    *,
+    confidence: float = 0.95,
+    samples: int = 1000,
+    seed: int | None = None,
+) -> tuple[float, float, float]:
+    """Return the mean and percentile bootstrap interval for metric values."""
+    if isinstance(values, (str, bytes)):
+        raise TypeError("values must be a numeric sequence")
+    observed = list(values)
+    if not observed:
+        raise ValueError("values must not be empty")
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in observed):
+        raise TypeError("values must contain numbers")
+    if any(not math.isfinite(value) for value in observed):
+        raise ValueError("values must contain finite numbers")
+    if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+        raise TypeError("confidence must be a number")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be between zero and one")
+    _validate_count(samples, "samples")
+    if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
+        raise TypeError("seed must be an integer or None")
+    rng = random.Random(seed)
+    size = len(observed)
+    bootstrap_means = []
+    for _ in range(samples):
+        bootstrap_means.append(sum(observed[rng.randrange(size)] for _ in range(size)) / size)
+    bootstrap_means.sort()
+    tail = (1.0 - float(confidence)) / 2.0
+
+    def percentile(position: float) -> float:
+        index = position * (len(bootstrap_means) - 1)
+        lower = int(index)
+        upper = min(lower + 1, len(bootstrap_means) - 1)
+        fraction = index - lower
+        return bootstrap_means[lower] + fraction * (bootstrap_means[upper] - bootstrap_means[lower])
+
+    return sum(observed) / size, percentile(tail), percentile(1.0 - tail)
+
+
 def fold_class_counts(
     labels: Sequence[Any], validation_indices: Sequence[int]
 ) -> dict[Any, int]:
@@ -109,4 +152,4 @@ def fold_class_counts(
     return counts
 
 
-__all__ = ["fold_class_counts", "kfold_indices", "stratified_kfold_indices"]
+__all__ = ["bootstrap_mean_interval", "fold_class_counts", "kfold_indices", "stratified_kfold_indices"]

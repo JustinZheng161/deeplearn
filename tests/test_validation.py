@@ -71,3 +71,20 @@ def test_stratified_kfold_validates_seed_and_fold_count():
         list(stratified_kfold_indices([0, 1], folds=2, seed=True))
     with pytest.raises(ValueError):
         list(stratified_kfold_indices([0, 1], folds=1))
+
+
+def test_bootstrap_mean_interval_is_reproducible_and_contains_mean():
+    from deeplearn_utils import bootstrap_mean_interval
+
+    first = bootstrap_mean_interval([0.7, 0.8, 0.9, 1.0], samples=200, seed=12)
+    assert first == bootstrap_mean_interval([0.7, 0.8, 0.9, 1.0], samples=200, seed=12)
+    assert first[1] <= first[0] <= first[2]
+    assert first[0] == pytest.approx(0.85)
+
+
+@pytest.mark.parametrize("confidence", [0, 1, -0.1, True, "0.95"])
+def test_bootstrap_mean_interval_validates_parameters(confidence):
+    from deeplearn_utils import bootstrap_mean_interval
+
+    with pytest.raises((TypeError, ValueError)):
+        bootstrap_mean_interval([1, 2], confidence=confidence)
