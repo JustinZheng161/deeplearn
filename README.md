@@ -329,6 +329,17 @@ from deeplearn_utils import batch_hard_triplet_loss
 loss = batch_hard_triplet_loss(embeddings, labels, margin=1.0)
 ```
 
+## Sequence preparation
+
+For recurrent and transformer models, `sliding_windows` creates leakage-safe history/forecast pairs, `temporal_split` preserves chronological order, `pad_sequences` handles variable-length batches, and `causal_mask` creates autoregressive attention masks:
+
+```python
+from deeplearn_utils import causal_mask, sliding_windows
+
+windows = sliding_windows(sensor_values, window_size=32, horizon=8)
+mask = causal_mask(32)
+```
+
 ## Development
 
 Run the test suite with:
