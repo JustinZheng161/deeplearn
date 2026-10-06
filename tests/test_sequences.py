@@ -57,3 +57,25 @@ def test_sequence_helpers_validate_integer_parameters():
         sliding_windows([1, 2], True)
     with pytest.raises(ValueError):
         pad_sequences([[1]], max_length=0)
+
+
+def test_lengths_to_padding_mask_supports_left_and_right_padding():
+    from deeplearn_utils import lengths_to_padding_mask
+
+    assert lengths_to_padding_mask([2, 1], max_length=3) == [[False, False, True], [False, True, True]]
+    assert lengths_to_padding_mask([2, 1], max_length=3, left_padding=True) == [[True, False, False], [True, True, False]]
+
+
+@pytest.mark.parametrize("lengths", [[], [-1], [1.5], [True]])
+def test_lengths_to_padding_mask_validates_lengths(lengths):
+    from deeplearn_utils import lengths_to_padding_mask
+
+    with pytest.raises((TypeError, ValueError)):
+        lengths_to_padding_mask(lengths)
+
+
+def test_lengths_to_padding_mask_rejects_short_max_length():
+    from deeplearn_utils import lengths_to_padding_mask
+
+    with pytest.raises(ValueError):
+        lengths_to_padding_mask([1, 3], max_length=2)

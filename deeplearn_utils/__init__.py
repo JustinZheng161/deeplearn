@@ -58,6 +58,7 @@ from .augmentation import (
     random_feature_dropout,
     inverted_feature_dropout,
 )
+from .sequences import lengths_to_padding_mask
 from .validation import (
     bootstrap_mean_interval,
     fold_class_counts,
@@ -110,6 +111,7 @@ __all__ = [
     "mean_squared_error",
     "r2_score",
     "label_smoothed_targets",
+    "lengths_to_padding_mask",
     "MinMaxScaler",
     "RobustScaler",
     "StandardScaler",

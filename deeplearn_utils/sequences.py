@@ -80,7 +80,36 @@ def pad_sequences(
     return result, [min(length, limit) for length in lengths]
 
 
-def causal_mask(length: int, *, include_current: bool = True) -> list[list[bool]]:
+
+
+def lengths_to_padding_mask(
+    lengths: Sequence[int], *, max_length: int | None = None, left_padding: bool = False
+) -> list[list[bool]]:
+    """Convert sequence lengths into boolean masks where ``True`` means padding."""
+    if isinstance(lengths, (str, bytes)):
+        raise TypeError("lengths must be an integer sequence")
+    values = list(lengths)
+    if not values:
+        raise ValueError("lengths must not be empty")
+    if any(isinstance(length, bool) or not isinstance(length, int) for length in values):
+        raise TypeError("lengths must contain integers")
+    if any(length < 0 for length in values):
+        raise ValueError("lengths must be non-negative")
+    limit = max(values) if max_length is None else max_length
+    if isinstance(limit, bool) or not isinstance(limit, int):
+        raise TypeError("max_length must be an integer or None")
+    if limit < 1 or any(length > limit for length in values):
+        raise ValueError("max_length must cover every sequence length")
+    masks = []
+    for length in values:
+        padding = limit - length
+        row = [True] * padding + [False] * length if left_padding else [False] * length + [True] * padding
+        masks.append(row)
+    return masks
+
+
+def causal_mask(
+length: int, *, include_current: bool = True) -> list[list[bool]]:
     """Return a lower-triangular attention mask for autoregressive models."""
     if isinstance(length, bool) or not isinstance(length, int):
         raise TypeError("length must be an integer")
@@ -89,4 +118,4 @@ def causal_mask(length: int, *, include_current: bool = True) -> list[list[bool]
     return [[column <= row if include_current else column < row for column in range(length)] for row in range(length)]
 
 
-__all__ = ["causal_mask", "pad_sequences", "sliding_windows", "temporal_split"]
+__all__ = ["causal_mask", "lengths_to_padding_mask", "pad_sequences", "sliding_windows", "temporal_split"]

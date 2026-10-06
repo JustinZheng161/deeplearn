@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Sequence padding masks
+
+`lengths_to_padding_mask` converts valid sequence lengths into boolean masks where padded positions are `True`, with support for both left and right padding:
+
+```python
+from deeplearn_utils import lengths_to_padding_mask
+
+mask = lengths_to_padding_mask([5, 3, 4], max_length=5)
+```
+
 ## Bootstrap metric intervals
 
 `bootstrap_mean_interval` estimates a metric mean and a percentile confidence interval without adding a numerical dependency. A fixed seed makes experiment reports reproducible:
