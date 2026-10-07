@@ -350,6 +350,17 @@ windows = sliding_windows(sensor_values, window_size=32, horizon=8)
 mask = causal_mask(32)
 ```
 
+## Parameter regularization
+
+`l1_penalty`, `l2_penalty`, and `elastic_net_penalty` compute framework-independent penalties over nested parameter values. `weight_decay_update` applies decoupled decay, while `clip_vector_norm` constrains a flat gradient or parameter vector:
+
+```python
+from deeplearn_utils import l2_penalty, weight_decay_update
+
+regularization = l2_penalty(layer_weights, coefficient=1e-4)
+updated = weight_decay_update(parameters, gradients, learning_rate=1e-3, decay=1e-2)
+```
+
 ## Development
 
 Run the test suite with:
