@@ -75,3 +75,18 @@ def test_nested_parameter_validation_rejects_nonfinite_values():
         l2_penalty([[1, float("inf")]])
     with pytest.raises(TypeError):
         l2_penalty([[1, "bad"]])
+
+
+def test_group_lasso_sums_group_norms_and_supports_coefficients():
+    from deeplearn_utils import group_lasso_penalty
+
+    assert group_lasso_penalty([[3, 4], [0, 6]]) == pytest.approx(11.0)
+    assert group_lasso_penalty([[3, 4], [0, 6]], coefficient=0.5) == pytest.approx(5.5)
+
+
+@pytest.mark.parametrize("groups", [[], "abc"])
+def test_group_lasso_validates_groups(groups):
+    from deeplearn_utils import group_lasso_penalty
+
+    with pytest.raises((TypeError, ValueError)):
+        group_lasso_penalty(groups)

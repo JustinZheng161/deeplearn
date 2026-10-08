@@ -60,6 +60,7 @@ from .augmentation import (
     inverted_feature_dropout,
 )
 from .sequences import lengths_to_padding_mask
+from .regularization import group_lasso_penalty
 from .validation import (
     bootstrap_mean_interval,
     fold_class_counts,
@@ -113,6 +114,7 @@ __all__ = [
     "r2_score",
     "label_smoothed_targets",
     "lengths_to_padding_mask",
+    "group_lasso_penalty",
     "MinMaxScaler",
     "RobustScaler",
     "StandardScaler",

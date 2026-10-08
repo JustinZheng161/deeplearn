@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Structured group regularization
+
+`group_lasso_penalty` sums the L2 norm of each parameter group, encouraging entire groups such as convolution channels or attention heads to become sparse:
+
+```python
+from deeplearn_utils import group_lasso_penalty
+
+penalty = group_lasso_penalty(channel_weights, coefficient=0.01)
+```
+
 ## Sequence padding masks
 
 `lengths_to_padding_mask` converts valid sequence lengths into boolean masks where padded positions are `True`, with support for both left and right padding:

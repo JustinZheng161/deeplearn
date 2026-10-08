@@ -39,6 +39,20 @@ def l2_penalty(parameters: Iterable[Any], *, coefficient: float = 1.0) -> float:
     return float(coefficient) * sum(value * value for value in _flatten(parameters))
 
 
+def group_lasso_penalty(
+    parameter_groups: Iterable[Iterable[float]], *, coefficient: float = 1.0
+) -> float:
+    """Return coefficient times the sum of L2 norms across parameter groups."""
+    _validate_coefficient(coefficient)
+    if isinstance(parameter_groups, (str, bytes)):
+        raise TypeError("parameter_groups must be a sequence of groups")
+    groups = list(parameter_groups)
+    if not groups:
+        raise ValueError("parameter_groups must not be empty")
+    norms = [math.sqrt(sum(value * value for value in _flatten(group))) for group in groups]
+    return float(coefficient) * sum(norms)
+
+
 def elastic_net_penalty(
     parameters: Iterable[Any], *, l1_coefficient: float = 0.5, l2_coefficient: float = 0.5
 ) -> float:
@@ -102,4 +116,4 @@ def _validate_positive(value: float, name: str) -> None:
         raise ValueError(f"{name} must be positive and finite")
 
 
-__all__ = ["clip_vector_norm", "elastic_net_penalty", "l1_penalty", "l2_penalty", "weight_decay_update"]
+__all__ = ["clip_vector_norm", "elastic_net_penalty", "group_lasso_penalty", "l1_penalty", "l2_penalty", "weight_decay_update"]
