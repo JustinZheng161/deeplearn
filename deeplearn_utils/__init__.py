@@ -52,6 +52,7 @@ from .uncertainty import UncertaintySummary, ensemble_mean, entropy, mutual_info
 from .metric_learning import batch_hard_triplet_loss, contrastive_loss, pairwise_distance_matrix, triplet_margin_loss
 from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_split
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
+from .optimizers import Adam, SGD
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -188,4 +189,6 @@ __all__ = [
     "l1_penalty",
     "l2_penalty",
     "weight_decay_update",
+    "Adam",
+    "SGD",
 ]

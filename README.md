@@ -371,6 +371,17 @@ regularization = l2_penalty(layer_weights, coefficient=1e-4)
 updated = weight_decay_update(parameters, gradients, learning_rate=1e-3, decay=1e-2)
 ```
 
+## Optimizer updates
+
+The dependency-free `SGD` and `Adam` classes expose stateful `step` methods for educational loops, custom parameter containers, and optimizer debugging. They support momentum, Nesterov updates, bias correction, and decoupled weight decay:
+
+```python
+from deeplearn_utils import Adam
+
+optimizer = Adam(learning_rate=1e-3, weight_decay=1e-4)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Development
 
 Run the test suite with:
