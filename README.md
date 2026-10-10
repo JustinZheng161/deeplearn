@@ -88,6 +88,17 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## RMSprop optimizer
+
+`RMSprop` provides a stateful adaptive update with optional momentum, centered variance estimates, and weight decay for training loops that need an alternative to SGD or Adam:
+
+```python
+from deeplearn_utils import RMSprop
+
+optimizer = RMSprop(learning_rate=1e-2, centered=True)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Structured group regularization
 
 `group_lasso_penalty` sums the L2 norm of each parameter group, encouraging entire groups such as convolution channels or attention heads to become sparse:

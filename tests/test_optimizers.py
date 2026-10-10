@@ -75,3 +75,33 @@ def test_optimizers_reject_invalid_values():
         SGD().step([float("inf")], [1])
     with pytest.raises(TypeError):
         Adam().step([True], [1])
+
+
+def test_rmsprop_adapts_updates_and_tracks_state():
+    from deeplearn_utils import RMSprop
+
+    optimizer = RMSprop(learning_rate=0.1, alpha=0.9, momentum=0.5, centered=True)
+    first = optimizer.step([1.0], [1.0])
+    second = optimizer.step(first, [1.0])
+    assert first[0] < 1.0
+    assert second[0] < first[0]
+    assert optimizer.square_average and optimizer.momentum_buffer and optimizer.gradient_average
+
+
+def test_rmsprop_reset_clears_running_statistics():
+    from deeplearn_utils import RMSprop
+
+    optimizer = RMSprop()
+    optimizer.step([1.0], [1.0])
+    optimizer.reset()
+    assert optimizer.square_average == []
+    assert optimizer.momentum_buffer == []
+    assert optimizer.gradient_average == []
+
+
+@pytest.mark.parametrize("kwargs", [{"alpha": 1}, {"momentum": -1}, {"epsilon": 0}, {"centered": 1}])
+def test_rmsprop_validates_hyperparameters(kwargs):
+    from deeplearn_utils import RMSprop
+
+    with pytest.raises((TypeError, ValueError)):
+        RMSprop(**kwargs)

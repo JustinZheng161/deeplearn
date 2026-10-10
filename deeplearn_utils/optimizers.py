@@ -125,4 +125,64 @@ class Adam:
         self.step_count = 0
 
 
-__all__ = ["Adam", "SGD"]
+@dataclass
+class RMSprop:
+    """RMSprop with optional momentum and centered variance estimates."""
+
+    learning_rate: float = 1e-2
+    alpha: float = 0.99
+    epsilon: float = 1e-8
+    momentum: float = 0.0
+    weight_decay: float = 0.0
+    centered: bool = False
+    square_average: list[float] = field(default_factory=list)
+    momentum_buffer: list[float] = field(default_factory=list)
+    gradient_average: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        for name, value in (("alpha", self.alpha), ("momentum", self.momentum)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
+                raise ValueError(f"{name} must be between zero and one")
+        _positive(self.epsilon, "epsilon")
+        if isinstance(self.weight_decay, bool) or not isinstance(self.weight_decay, (int, float)) or self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative")
+        if not isinstance(self.centered, bool):
+            raise TypeError("centered must be a boolean")
+
+    def step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return parameters after one RMSprop update."""
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        if self.square_average and len(self.square_average) != len(values):
+            raise ValueError("parameter dimension changed after optimizer initialization")
+        if not self.square_average:
+            self.square_average = [0.0] * len(values)
+            self.momentum_buffer = [0.0] * len(values)
+            self.gradient_average = [0.0] * len(values)
+        result = []
+        for index, (value, gradient) in enumerate(zip(values, updates)):
+            adjusted = gradient + float(self.weight_decay) * value
+            self.square_average[index] = self.alpha * self.square_average[index] + (1 - self.alpha) * adjusted**2
+            if self.centered:
+                self.gradient_average[index] = self.alpha * self.gradient_average[index] + (1 - self.alpha) * adjusted
+                denominator = self.square_average[index] - self.gradient_average[index] ** 2 + self.epsilon
+            else:
+                denominator = self.square_average[index] + self.epsilon
+            direction = adjusted / math.sqrt(max(denominator, 0.0))
+            if self.momentum:
+                self.momentum_buffer[index] = self.momentum * self.momentum_buffer[index] + direction
+                direction = self.momentum_buffer[index]
+            result.append(value - self.learning_rate * direction)
+        return result
+
+    def reset(self) -> None:
+        """Clear running variance, mean, and momentum state."""
+        self.square_average.clear()
+        self.momentum_buffer.clear()
+        self.gradient_average.clear()
+
+
+__all__ = ["Adam", "RMSprop", "SGD"]
