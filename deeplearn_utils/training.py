@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable, Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
 
 
@@ -128,6 +128,39 @@ class RunningAverage:
         self.weight = 0
 
 
+@dataclass
+class ParameterEMA:
+    """Track an exponential moving average of flat model parameters."""
+
+    decay: float = 0.999
+    shadow: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.decay, bool) or not isinstance(self.decay, (int, float)):
+            raise TypeError("decay must be a number")
+        if not 0 <= self.decay < 1:
+            raise ValueError("decay must be between zero and one")
+
+    def update(self, parameters: Sequence[float]) -> list[float]:
+        """Update the average and return a copy of the smoothed parameters."""
+        values = list(parameters)
+        if not values:
+            raise ValueError("parameters must not be empty")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+            raise TypeError("parameters must contain numbers")
+        if not self.shadow:
+            self.shadow = [float(value) for value in values]
+        elif len(self.shadow) != len(values):
+            raise ValueError("parameter dimension changed after initialization")
+        else:
+            self.shadow = [self.decay * old + (1 - self.decay) * float(value) for old, value in zip(self.shadow, values)]
+        return self.shadow.copy()
+
+    def reset(self) -> None:
+        """Discard the running parameter average."""
+        self.shadow.clear()
+
+
 @dataclass(frozen=True)
 class EarlyStoppingState:
     """Serializable snapshot of early-stopping progress."""
@@ -201,6 +234,7 @@ class EarlyStopping:
 __all__ = [
     "EarlyStopping",
     "EarlyStoppingState",
+    "ParameterEMA",
     "clip_by_global_norm",
     "RunningAverage",
     "batch_indices",

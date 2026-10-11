@@ -88,6 +88,17 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Exponential moving average of parameters
+
+`ParameterEMA` tracks smoothed model parameters for more stable evaluation or checkpointing after noisy updates:
+
+```python
+from deeplearn_utils import ParameterEMA
+
+ema = ParameterEMA(decay=0.999)
+smoothed_parameters = ema.update(parameters)
+```
+
 ## RMSprop optimizer
 
 `RMSprop` provides a stateful adaptive update with optional momentum, centered variance estimates, and weight decay for training loops that need an alternative to SGD or Adam:

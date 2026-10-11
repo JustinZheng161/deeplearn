@@ -124,3 +124,31 @@ def test_clip_by_global_norm_validates_limit(max_norm):
 
     with pytest.raises((TypeError, ValueError)):
         clip_by_global_norm([[1.0]], max_norm)
+
+
+def test_parameter_ema_smooths_updates_and_preserves_previous_state():
+    from deeplearn_utils import ParameterEMA
+
+    average = ParameterEMA(decay=0.5)
+    assert average.update([0.0, 2.0]) == [0.0, 2.0]
+    assert average.update([2.0, 4.0]) == pytest.approx([1.0, 3.0])
+    assert average.shadow == pytest.approx([1.0, 3.0])
+
+
+def test_parameter_ema_reset_and_dimension_validation():
+    from deeplearn_utils import ParameterEMA
+
+    average = ParameterEMA()
+    average.update([1.0])
+    with pytest.raises(ValueError, match="dimension"):
+        average.update([1.0, 2.0])
+    average.reset()
+    assert average.shadow == []
+
+
+@pytest.mark.parametrize("decay", [-1, 1, True, "0.9"])
+def test_parameter_ema_validates_decay(decay):
+    from deeplearn_utils import ParameterEMA
+
+    with pytest.raises((TypeError, ValueError)):
+        ParameterEMA(decay=decay)

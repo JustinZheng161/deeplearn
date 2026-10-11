@@ -63,6 +63,7 @@ from .augmentation import (
 from .sequences import lengths_to_padding_mask
 from .regularization import group_lasso_penalty
 from .optimizers import RMSprop
+from .training import ParameterEMA
 from .validation import (
     bootstrap_mean_interval,
     fold_class_counts,
@@ -118,6 +119,7 @@ __all__ = [
     "lengths_to_padding_mask",
     "group_lasso_penalty",
     "RMSprop",
+    "ParameterEMA",
     "MinMaxScaler",
     "RobustScaler",
     "StandardScaler",
