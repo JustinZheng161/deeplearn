@@ -53,6 +53,7 @@ from .metric_learning import batch_hard_triplet_loss, contrastive_loss, pairwise
 from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_split
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
 from .optimizers import Adam, SGD
+from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -195,4 +196,8 @@ __all__ = [
     "weight_decay_update",
     "Adam",
     "SGD",
+    "RunningBatchNorm",
+    "batch_norm",
+    "layer_norm",
+    "rms_norm",
 ]

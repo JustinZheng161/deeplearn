@@ -406,6 +406,19 @@ parameters = optimizer.step(parameters, gradients)
 
 ## Development
 
+## Normalization
+
+`layer_norm`, `rms_norm`, and `batch_norm` provide dependency-free feature normalization for small neural-network experiments. `RunningBatchNorm` tracks moving statistics for applying batch normalization to later batches:
+
+```python
+from deeplearn_utils import RunningBatchNorm, layer_norm
+
+normalized = layer_norm(hidden_states)
+normalizer = RunningBatchNorm(features=hidden_size)
+normalizer.update(training_batch)
+inference_batch = normalizer.transform(test_batch)
+```
+
 Run the test suite with:
 
 ```bash
