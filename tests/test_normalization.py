@@ -67,3 +67,22 @@ def test_running_batch_norm_validates_feature_count_and_hyperparameters():
         norm.update([[1]])
     with pytest.raises(ValueError):
         norm.transform([[1]])
+
+
+def test_group_norm_normalizes_each_feature_group_independently():
+    from deeplearn_utils import group_norm
+
+    result = group_norm([[1, 2, 10, 14]], groups=2)
+    assert result[0][:2] == pytest.approx([-1.0, 1.0], abs=1e-4)
+    assert result[0][2:] == pytest.approx([-1.0, 1.0], abs=1e-4)
+
+
+def test_group_norm_applies_affine_parameters_and_validates_groups():
+    from deeplearn_utils import group_norm
+
+    result = group_norm([[1, 3]], groups=1, gamma=[2, 3], beta=[1, -1])
+    assert result[0] == pytest.approx([-1.0, 2.0], abs=1e-4)
+    with pytest.raises(ValueError):
+        group_norm([[1, 2, 3]], groups=2)
+    with pytest.raises(TypeError):
+        group_norm([[1, 2]], groups=True)

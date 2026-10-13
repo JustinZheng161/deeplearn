@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Group normalization
+
+`group_norm` normalizes contiguous feature groups independently within each sample, making it useful for convolutional features and small batches where batch statistics are unstable:
+
+```python
+from deeplearn_utils import group_norm
+
+normalized = group_norm(features, groups=4)
+```
+
 ## Exponential moving average of parameters
 
 `ParameterEMA` tracks smoothed model parameters for more stable evaluation or checkpointing after noisy updates:

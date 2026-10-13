@@ -63,6 +63,7 @@ from .augmentation import (
 )
 from .sequences import lengths_to_padding_mask
 from .regularization import group_lasso_penalty
+from .normalization import group_norm
 from .optimizers import RMSprop
 from .training import ParameterEMA
 from .validation import (
@@ -119,6 +120,7 @@ __all__ = [
     "label_smoothed_targets",
     "lengths_to_padding_mask",
     "group_lasso_penalty",
+    "group_norm",
     "RMSprop",
     "ParameterEMA",
     "MinMaxScaler",

@@ -55,6 +55,37 @@ def rms_norm(
     return [[value / math.sqrt(sum(item * item for item in row) / len(row) + epsilon) * weight for value, weight in zip(row, scale)] for row in rows]
 
 
+def group_norm(
+    values: Sequence[Sequence[float]], groups: int, *, gamma: Sequence[float] | None = None,
+    beta: Sequence[float] | None = None, epsilon: float = 1e-5
+) -> list[list[float]]:
+    """Normalize contiguous feature groups independently within each row."""
+    rows = _matrix(values)
+    _epsilon(epsilon)
+    if isinstance(groups, bool) or not isinstance(groups, int):
+        raise TypeError("groups must be an integer")
+    width = len(rows[0])
+    if groups < 1 or width % groups:
+        raise ValueError("groups must be a positive divisor of the feature count")
+    scale = _features(gamma, width, "gamma", 1.0)
+    shift = _features(beta, width, "beta", 0.0)
+    group_width = width // groups
+    result = []
+    for row in rows:
+        normalized = [0.0] * width
+        for group in range(groups):
+            start = group * group_width
+            chunk = row[start : start + group_width]
+            mean = sum(chunk) / group_width
+            variance = sum((value - mean) ** 2 for value in chunk) / group_width
+            denominator = math.sqrt(variance + epsilon)
+            for offset, value in enumerate(chunk):
+                index = start + offset
+                normalized[index] = (value - mean) / denominator * scale[index] + shift[index]
+        result.append(normalized)
+    return result
+
+
 def batch_norm(
     values: Sequence[Sequence[float]], *, gamma: Sequence[float] | None = None, beta: Sequence[float] | None = None, epsilon: float = 1e-5
 ) -> list[list[float]]:
@@ -119,4 +150,4 @@ def _features(values: Sequence[float] | None, width: int, name: str, default: fl
     return [float(value) for value in result]
 
 
-__all__ = ["RunningBatchNorm", "batch_norm", "layer_norm", "rms_norm"]
+__all__ = ["RunningBatchNorm", "batch_norm", "group_norm", "layer_norm", "rms_norm"]
