@@ -429,6 +429,16 @@ normalizer.update(training_batch)
 inference_batch = normalizer.transform(test_batch)
 ```
 
+## Attention
+
+`scaled_dot_product_attention` implements numerically stable attention with boolean masks and fully masked-row handling. `causal_attention_mask` creates autoregressive masks, and `attention_pool` provides a compact first-query pooling helper:
+
+```python
+from deeplearn_utils import causal_attention_mask, scaled_dot_product_attention
+
+output, weights = scaled_dot_product_attention(queries, keys, values, mask=causal_attention_mask(sequence_length))
+```
+
 Run the test suite with:
 
 ```bash
