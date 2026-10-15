@@ -98,6 +98,19 @@ from deeplearn_utils import group_norm
 normalized = group_norm(features, groups=4)
 ```
 
+## Gradient accumulation
+
+`GradientAccumulator` combines gradients from multiple micro-batches and returns a sample-weighted mean, allowing larger effective batches when device memory is limited:
+
+```python
+from deeplearn_utils import GradientAccumulator
+
+accumulator = GradientAccumulator()
+for gradients, sample_count in micro_batches:
+    accumulator.add(gradients, weight=sample_count)
+optimizer.step(parameters, accumulator.value())
+```
+
 ## Exponential moving average of parameters
 
 `ParameterEMA` tracks smoothed model parameters for more stable evaluation or checkpointing after noisy updates:

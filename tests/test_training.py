@@ -126,6 +126,37 @@ def test_clip_by_global_norm_validates_limit(max_norm):
         clip_by_global_norm([[1.0]], max_norm)
 
 
+def test_gradient_accumulator_returns_sample_weighted_mean_and_resets():
+    from deeplearn_utils import GradientAccumulator
+
+    accumulator = GradientAccumulator()
+    accumulator.add([1.0, 3.0], weight=2)
+    accumulator.add([5.0, 1.0], weight=1)
+    assert accumulator.value() == pytest.approx([7 / 3, 7 / 3])
+    assert accumulator.weight == 3
+    accumulator.reset()
+    assert accumulator.weight == 0
+    with pytest.raises(ValueError, match="empty"):
+        accumulator.value()
+
+
+def test_gradient_accumulator_rejects_shape_and_parameter_changes():
+    from deeplearn_utils import GradientAccumulator
+
+    accumulator = GradientAccumulator()
+    with pytest.raises(ValueError, match="empty"):
+        accumulator.add([])
+    with pytest.raises((TypeError, ValueError)):
+        accumulator.add([1.0], weight=0)
+    with pytest.raises(TypeError):
+        accumulator.add([1.0], weight=True)
+    accumulator.add([1.0, 2.0])
+    with pytest.raises(ValueError, match="dimension"):
+        accumulator.add([1.0])
+    with pytest.raises(TypeError):
+        accumulator.add([1.0, "bad"])
+
+
 def test_parameter_ema_smooths_updates_and_preserves_previous_state():
     from deeplearn_utils import ParameterEMA
 

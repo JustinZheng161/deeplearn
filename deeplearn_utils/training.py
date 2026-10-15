@@ -161,6 +161,59 @@ class ParameterEMA:
         self.shadow.clear()
 
 
+class GradientAccumulator:
+    """Accumulate gradients from micro-batches and return their weighted mean.
+
+    This is useful when a full batch does not fit in memory: callers can run
+    several forward/backward passes, add each batch's gradients, and apply one
+    optimizer update using :meth:`value`. ``weight`` should normally equal the
+    number of samples represented by a micro-batch.
+    """
+
+    def __init__(self) -> None:
+        self._total: list[float] | None = None
+        self.weight = 0
+
+    @staticmethod
+    def _values(gradients: Sequence[float]) -> list[float]:
+        if isinstance(gradients, (str, bytes)):
+            raise TypeError("gradients must be a sequence of numbers")
+        try:
+            values = list(gradients)
+        except TypeError as exc:
+            raise TypeError("gradients must be a sequence of numbers") from exc
+        if not values:
+            raise ValueError("gradients must not be empty")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+            raise TypeError("gradients must contain numbers")
+        return [float(value) for value in values]
+
+    def add(self, gradients: Sequence[float], *, weight: int = 1) -> None:
+        """Add one gradient vector, weighted by its number of samples."""
+        if isinstance(weight, bool) or not isinstance(weight, int):
+            raise TypeError("weight must be an integer")
+        if weight < 1:
+            raise ValueError("weight must be positive")
+        values = self._values(gradients)
+        if self._total is None:
+            self._total = [0.0] * len(values)
+        elif len(self._total) != len(values):
+            raise ValueError("gradient dimension changed during accumulation")
+        self._total = [total + value * weight for total, value in zip(self._total, values)]
+        self.weight += weight
+
+    def value(self) -> list[float]:
+        """Return the weighted mean, or raise before any gradients are added."""
+        if self._total is None or not self.weight:
+            raise ValueError("cannot read an empty gradient accumulator")
+        return [value / self.weight for value in self._total]
+
+    def reset(self) -> None:
+        """Discard accumulated gradients and sample weight."""
+        self._total = None
+        self.weight = 0
+
+
 @dataclass(frozen=True)
 class EarlyStoppingState:
     """Serializable snapshot of early-stopping progress."""
@@ -233,6 +286,7 @@ class EarlyStopping:
 
 __all__ = [
     "EarlyStopping",
+    "GradientAccumulator",
     "EarlyStoppingState",
     "ParameterEMA",
     "clip_by_global_norm",

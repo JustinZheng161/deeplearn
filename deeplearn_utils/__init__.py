@@ -39,6 +39,7 @@ from .metrics import (
 )
 from .training import (
     EarlyStopping,
+    GradientAccumulator,
     clip_by_global_norm,
     EarlyStoppingState,
     RunningAverage,
@@ -134,6 +135,7 @@ __all__ = [
     "precision_recall_f1",
     "top_k_accuracy",
     "EarlyStopping",
+    "GradientAccumulator",
     "clip_by_global_norm",
     "EarlyStoppingState",
     "RunningAverage",
