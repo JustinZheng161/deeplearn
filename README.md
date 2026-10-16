@@ -452,6 +452,17 @@ from deeplearn_utils import causal_attention_mask, scaled_dot_product_attention
 output, weights = scaled_dot_product_attention(queries, keys, values, mask=causal_attention_mask(sequence_length))
 ```
 
+## Activation functions
+
+The package includes stable `relu`, `leaky_relu`, `sigmoid`, `silu`, `gelu`, and `softplus` implementations. ReLU, leaky ReLU, and SiLU also expose elementwise derivatives for educational backpropagation experiments:
+
+```python
+from deeplearn_utils import gelu, silu
+
+hidden = gelu(pre_activation)
+gated = silu(pre_activation)
+```
+
 Run the test suite with:
 
 ```bash

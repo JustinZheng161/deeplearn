@@ -56,6 +56,7 @@ from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l
 from .optimizers import Adam, SGD
 from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
 from .attention import attention_pool, causal_attention_mask, scaled_dot_product_attention
+from .activations import gelu, leaky_relu, leaky_relu_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -208,4 +209,14 @@ __all__ = [
     "attention_pool",
     "causal_attention_mask",
     "scaled_dot_product_attention",
+    "gelu",
+    "leaky_relu",
+    "leaky_relu_derivative",
+    "relu",
+    "relu_derivative",
+    "sigmoid",
+    "silu",
+    "silu_derivative",
+    "softplus",
+    "vector_sigmoid",
 ]
