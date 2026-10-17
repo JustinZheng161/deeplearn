@@ -88,6 +88,16 @@ from deeplearn_utils import label_smoothed_targets
 soft_targets = label_smoothed_targets(labels, class_count=10, smoothing=0.1)
 ```
 
+## Smooth activations
+
+`mish` provides a smooth, non-monotonic activation, while `mish_derivative` exposes its analytical derivative for framework-agnostic experiments. Both use the stable softplus implementation internally:
+
+```python
+from deeplearn_utils import mish
+
+hidden = mish(pre_activation)
+```
+
 ## Group normalization
 
 `group_norm` normalizes contiguous feature groups independently within each sample, making it useful for convolutional features and small batches where batch statistics are unstable:

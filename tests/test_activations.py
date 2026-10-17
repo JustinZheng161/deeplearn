@@ -4,6 +4,8 @@ import pytest
 
 from deeplearn_utils import (
     gelu,
+    mish,
+    mish_derivative,
     leaky_relu,
     leaky_relu_derivative,
     relu,
@@ -45,6 +47,21 @@ def test_gelu_exact_and_approximate_are_close():
     assert approximate == pytest.approx(exact, abs=5e-4)
 
 
+def test_mish_is_stable_and_supports_beta():
+    values = mish([-1000, 0, 1000])
+    assert values[0] == pytest.approx(0.0, abs=1e-10)
+    assert values[1] == pytest.approx(0.0)
+    assert values[2] == pytest.approx(1000.0)
+    assert mish([2], beta=2)[0] == pytest.approx(2 * math.tanh(math.log1p(math.exp(4)) / 2))
+
+
+def test_mish_derivative_matches_finite_difference():
+    for value in [-2.0, 0.0, 2.0]:
+        step = 1e-5
+        numerical = (mish([value + step])[0] - mish([value - step])[0]) / (2 * step)
+        assert mish_derivative([value])[0] == pytest.approx(numerical, abs=1e-5)
+
+
 def test_softplus_is_stable_and_supports_beta():
     values = softplus([-1000, 0, 1000])
     assert values[0] == pytest.approx(0.0)
@@ -68,3 +85,7 @@ def test_activation_parameters_are_validated():
         softplus([1], beta=0)
     with pytest.raises(ValueError):
         softplus([1], threshold=float("nan"))
+    with pytest.raises(ValueError):
+        mish([1], beta=0)
+    with pytest.raises(ValueError):
+        mish_derivative([1], threshold=float("inf"))

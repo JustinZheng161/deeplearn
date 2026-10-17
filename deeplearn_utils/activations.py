@@ -82,6 +82,30 @@ def gelu(values: Sequence[float], *, approximate: bool = True) -> list[float]:
     return result
 
 
+def mish(values: Sequence[float], *, beta: float = 1.0, threshold: float = 20.0) -> list[float]:
+    """Return the smooth Mish activation, ``x * tanh(softplus(x))``.
+
+    The stable softplus implementation avoids overflow for large positive
+    inputs while preserving the negative tail that distinguishes Mish from
+    ReLU-like activations.
+    """
+    raw = _values(values)
+    smooth = softplus(raw, beta=beta, threshold=threshold)
+    return [value * math.tanh(part) for value, part in zip(raw, smooth)]
+
+
+def mish_derivative(values: Sequence[float], *, beta: float = 1.0, threshold: float = 20.0) -> list[float]:
+    """Return the analytical derivative of Mish for finite numeric inputs."""
+    raw = _values(values)
+    smooth = softplus(raw, beta=beta, threshold=threshold)
+    probabilities = sigmoid([beta * value for value in raw])
+    result = []
+    for value, part, probability in zip(raw, smooth, probabilities):
+        hyperbolic = math.tanh(part)
+        result.append(hyperbolic + value * probability * (1.0 - hyperbolic**2))
+    return result
+
+
 def softplus(values: Sequence[float], *, beta: float = 1.0, threshold: float = 20.0) -> list[float]:
     """Return stable ``log(1 + exp(beta*x)) / beta`` values."""
     if isinstance(beta, bool) or not isinstance(beta, (int, float)) or not math.isfinite(beta) or beta <= 0:
@@ -100,4 +124,4 @@ def _validate_slope(value: float) -> None:
         raise ValueError("negative_slope must be finite and non-negative")
 
 
-__all__ = ["gelu", "leaky_relu", "leaky_relu_derivative", "relu", "relu_derivative", "sigmoid", "silu", "silu_derivative", "softplus"]
+__all__ = ["gelu", "leaky_relu", "leaky_relu_derivative", "mish", "mish_derivative", "relu", "relu_derivative", "sigmoid", "silu", "silu_derivative", "softplus"]
