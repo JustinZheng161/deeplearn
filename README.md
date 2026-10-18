@@ -132,6 +132,17 @@ ema = ParameterEMA(decay=0.999)
 smoothed_parameters = ema.update(parameters)
 ```
 
+## AdaGrad optimizer
+
+`AdaGrad` accumulates squared gradients and automatically reduces the step size for parameters that receive frequent updates, which can be useful for sparse features:
+
+```python
+from deeplearn_utils import AdaGrad
+
+optimizer = AdaGrad(learning_rate=1e-2)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## RMSprop optimizer
 
 `RMSprop` provides a stateful adaptive update with optional momentum, centered variance estimates, and weight decay for training loops that need an alternative to SGD or Adam:

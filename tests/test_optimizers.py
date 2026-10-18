@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import Adam, SGD
+from deeplearn_utils import AdaGrad, Adam, SGD
 
 
 def test_sgd_without_momentum_matches_gradient_descent():
@@ -59,6 +59,12 @@ def test_optimizers_validate_lengths_and_dimension_changes():
 
 def test_optimizers_validate_hyperparameters():
     with pytest.raises(ValueError):
+        AdaGrad(learning_rate=0)
+    with pytest.raises(ValueError):
+        AdaGrad(epsilon=0)
+    with pytest.raises((TypeError, ValueError)):
+        AdaGrad(weight_decay=-1)
+    with pytest.raises(ValueError):
         SGD(learning_rate=0)
     with pytest.raises(ValueError):
         SGD(momentum=1)
@@ -75,6 +81,23 @@ def test_optimizers_reject_invalid_values():
         SGD().step([float("inf")], [1])
     with pytest.raises(TypeError):
         Adam().step([True], [1])
+
+
+def test_adagrad_accumulates_squared_gradients_and_adapts_steps():
+    optimizer = AdaGrad(learning_rate=0.1, epsilon=1e-8)
+    first = optimizer.step([1.0], [1.0])
+    second = optimizer.step(first, [1.0])
+    assert first[0] == pytest.approx(0.9, abs=1e-6)
+    assert second[0] == pytest.approx(0.829289, abs=1e-5)
+    assert optimizer.squared_gradient == pytest.approx([2.0])
+
+
+def test_adagrad_supports_weight_decay_and_reset():
+    optimizer = AdaGrad(learning_rate=0.1, weight_decay=0.1)
+    result = optimizer.step([1.0], [0.0])
+    assert result[0] < 1.0
+    optimizer.reset()
+    assert optimizer.squared_gradient == []
 
 
 def test_rmsprop_adapts_updates_and_tracks_state():

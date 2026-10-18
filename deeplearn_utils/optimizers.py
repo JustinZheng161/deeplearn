@@ -126,6 +126,46 @@ class Adam:
 
 
 @dataclass
+class AdaGrad:
+    """AdaGrad with optional L2 weight decay for sparse or noisy gradients."""
+
+    learning_rate: float = 1e-2
+    epsilon: float = 1e-8
+    weight_decay: float = 0.0
+    squared_gradient: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        _positive(self.epsilon, "epsilon")
+        if isinstance(self.weight_decay, bool) or not isinstance(self.weight_decay, (int, float)):
+            raise TypeError("weight_decay must be a number")
+        if not math.isfinite(self.weight_decay) or self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative and finite")
+
+    def step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return parameters after one accumulated-squared-gradient update."""
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        if self.squared_gradient and len(self.squared_gradient) != len(values):
+            raise ValueError("parameter dimension changed after optimizer initialization")
+        if not self.squared_gradient:
+            self.squared_gradient = [0.0] * len(values)
+        result = []
+        for index, (value, gradient) in enumerate(zip(values, updates)):
+            adjusted = gradient + float(self.weight_decay) * value
+            self.squared_gradient[index] += adjusted * adjusted
+            denominator = math.sqrt(self.squared_gradient[index]) + self.epsilon
+            result.append(value - self.learning_rate * adjusted / denominator)
+        return result
+
+    def reset(self) -> None:
+        """Clear the accumulated squared-gradient state."""
+        self.squared_gradient.clear()
+
+
+@dataclass
 class RMSprop:
     """RMSprop with optional momentum and centered variance estimates."""
 
@@ -185,4 +225,4 @@ class RMSprop:
         self.gradient_average.clear()
 
 
-__all__ = ["Adam", "RMSprop", "SGD"]
+__all__ = ["AdaGrad", "Adam", "RMSprop", "SGD"]
