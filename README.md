@@ -484,6 +484,17 @@ hidden = gelu(pre_activation)
 gated = silu(pre_activation)
 ```
 
+## Pooling and masked reductions
+
+`mean_pool`, `sum_pool`, `max_pool`, `min_pool`, and stable `logsumexp_pool` reduce sequence features while honoring boolean padding masks. `masked_softmax` is useful for attention weights when some positions must be ignored:
+
+```python
+from deeplearn_utils import masked_softmax, mean_pool
+
+summary = mean_pool(sequence_features, mask=valid_positions)
+weights = masked_softmax(scores, mask=valid_positions)
+```
+
 Run the test suite with:
 
 ```bash
