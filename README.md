@@ -164,6 +164,16 @@ from deeplearn_utils import group_lasso_penalty
 penalty = group_lasso_penalty(channel_weights, coefficient=0.01)
 ```
 
+## Top-k pooling
+
+`top_k_pool` averages the strongest `k` rows independently for each feature, retaining concentrated evidence while reducing sensitivity to one noisy activation:
+
+```python
+from deeplearn_utils import top_k_pool
+
+pooled = top_k_pool(instance_embeddings, k=3, mask=valid_instances)
+```
+
 ## Sequence padding masks
 
 `lengths_to_padding_mask` converts valid sequence lengths into boolean masks where padded positions are `True`, with support for both left and right padding:

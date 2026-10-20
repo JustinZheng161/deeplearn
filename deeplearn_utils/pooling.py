@@ -62,6 +62,27 @@ def min_pool(values: Sequence[Sequence[float]], *, mask: Sequence[bool] | None =
     return [min(row[column] for row in selected) for column in range(len(rows[0]))]
 
 
+def top_k_pool(
+    values: Sequence[Sequence[float]], k: int, *, mask: Sequence[bool] | None = None
+) -> list[float]:
+    """Average the top ``k`` selected rows independently per feature.
+
+    Unlike max pooling, this reduces sensitivity to one noisy activation while
+    retaining the strongest evidence in a sequence or set of instances.
+    """
+    rows = _matrix(values)
+    if isinstance(k, bool) or not isinstance(k, int):
+        raise TypeError("k must be an integer")
+    allowed = _mask(mask, len(rows))
+    selected = [row for row, included in zip(rows, allowed) if included]
+    if k < 1 or k > len(selected):
+        raise ValueError("k must be between one and the number of selected rows")
+    return [
+        sum(sorted((row[column] for row in selected), reverse=True)[:k]) / k
+        for column in range(len(rows[0]))
+    ]
+
+
 def logsumexp_pool(values: Sequence[Sequence[float]], *, mask: Sequence[bool] | None = None) -> list[float]:
     """Pool with a numerically stable log-sum-exp reduction."""
     rows = _matrix(values)
@@ -88,4 +109,4 @@ def masked_softmax(values: Sequence[float], *, mask: Sequence[bool] | None = Non
     return [value / total for value in exponentials]
 
 
-__all__ = ["logsumexp_pool", "masked_softmax", "max_pool", "mean_pool", "min_pool", "sum_pool"]
+__all__ = ["logsumexp_pool", "masked_softmax", "max_pool", "mean_pool", "min_pool", "sum_pool", "top_k_pool"]

@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from deeplearn_utils import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_pool, sum_pool
+from deeplearn_utils import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_pool, sum_pool, top_k_pool
 
 
 VALUES = [[1, 10], [3, 5], [2, 8]]
@@ -50,6 +50,33 @@ def test_pooling_validates_matrix_and_mask(pool):
         pool([[1]], mask=[])
     with pytest.raises(TypeError):
         pool([[1]], mask=[1])
+
+
+def test_top_k_pool_validates_matrix_and_mask():
+    with pytest.raises(ValueError):
+        top_k_pool([], 1)
+    with pytest.raises(ValueError):
+        top_k_pool([[1, 2], [3]], 1)
+    with pytest.raises(ValueError):
+        top_k_pool([[1]], 1, mask=[])
+    with pytest.raises(TypeError):
+        top_k_pool([[1]], 1, mask=[1])
+
+
+def test_top_k_pool_averages_strongest_rows_per_feature():
+    assert top_k_pool(VALUES, 2) == pytest.approx([2.5, 9.0])
+    assert top_k_pool(VALUES, 1, mask=[False, True, True]) == [3.0, 8.0]
+
+
+def test_top_k_pool_validates_k_and_selected_rows():
+    with pytest.raises(TypeError):
+        top_k_pool(VALUES, True)
+    with pytest.raises(ValueError):
+        top_k_pool(VALUES, 0)
+    with pytest.raises(ValueError):
+        top_k_pool(VALUES, 4)
+    with pytest.raises(ValueError):
+        top_k_pool(VALUES, 1, mask=[False, False, False])
 
 
 def test_masked_softmax_validates_values_and_mask():
