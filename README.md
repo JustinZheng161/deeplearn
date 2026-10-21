@@ -505,6 +505,17 @@ summary = mean_pool(sequence_features, mask=valid_positions)
 weights = masked_softmax(scores, mask=valid_positions)
 ```
 
+## Stochastic regularization
+
+`dropout` applies reproducible inverted elementwise dropout, `feature_dropout` removes whole feature columns consistently across a batch, and `stochastic_depth` randomly drops residual branches. Pass `training=False` for deterministic evaluation behavior:
+
+```python
+from deeplearn_utils import dropout, stochastic_depth
+
+hidden = dropout(hidden, rate=0.1, seed=42, training=is_training)
+output = stochastic_depth(residual, shortcut, drop_rate=0.2, seed=42, training=is_training)
+```
+
 Run the test suite with:
 
 ```bash
