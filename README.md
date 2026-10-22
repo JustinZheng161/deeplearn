@@ -58,6 +58,16 @@ precision = precision_at_k(ranked_ids, relevant_ids, k=10)
 ndcg = ndcg_at_k(ranked_ids, relevant_ids, k=10)
 ```
 
+## Mean intersection-over-union
+
+`mean_iou` reports the unweighted mean intersection-over-union across observed classes, with optional explicit labels for segmentation or validation batches where some classes are absent:
+
+```python
+from deeplearn_utils import mean_iou
+
+score = mean_iou(target_labels, predicted_labels, labels=class_ids)
+```
+
 ## Probability calibration
 
 `brier_score` and `brier_score_batch` measure squared probability error for multiclass predictions. Lower scores indicate better probabilistic forecasts, and soft targets are supported alongside the existing expected calibration error helper:

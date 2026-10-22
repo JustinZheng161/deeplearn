@@ -5,6 +5,7 @@ from deeplearn_utils import (
     balanced_accuracy,
     confusion_matrix,
     macro_f1,
+    mean_iou,
     precision_recall_f1,
     top_k_accuracy,
 )
@@ -55,6 +56,23 @@ def test_binary_metrics_are_zero_when_positive_class_is_absent():
 
 def test_macro_f1_averages_all_observed_classes():
     assert macro_f1([0, 0, 1, 1], [0, 1, 1, 1]) == pytest.approx(11 / 15)
+
+
+def test_mean_iou_averages_class_intersections_over_unions():
+    assert mean_iou([0, 0, 1, 1], [0, 1, 1, 1]) == pytest.approx((1 / 2 + 2 / 3) / 2)
+
+
+def test_mean_iou_supports_explicit_labels_and_missing_class():
+    assert mean_iou([0, 0], [0, 1], labels=[0, 1, 2]) == pytest.approx((0.5 + 0.0 + 0.0) / 3)
+    with pytest.raises(ValueError, match="duplicates"):
+        mean_iou([0], [0], labels=[0, 0])
+    with pytest.raises(ValueError, match="do not include"):
+        mean_iou([0, 1], [0, 1], labels=[0])
+
+
+def test_mean_iou_rejects_mismatched_inputs():
+    with pytest.raises(ValueError, match="same length"):
+        mean_iou([0], [0, 1])
 
 
 def test_balanced_accuracy_weights_classes_equally():

@@ -34,6 +34,7 @@ from .metrics import (
     expected_calibration_error,
     confusion_matrix,
     macro_f1,
+    mean_iou,
     precision_recall_f1,
     top_k_accuracy,
 )
@@ -135,6 +136,7 @@ __all__ = [
     "expected_calibration_error",
     "confusion_matrix",
     "macro_f1",
+    "mean_iou",
     "precision_recall_f1",
     "top_k_accuracy",
     "EarlyStopping",

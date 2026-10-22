@@ -167,6 +167,38 @@ def balanced_accuracy(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
     return sum(recalls) / len(recalls)
 
 
+def mean_iou(
+    y_true: Sequence[Any], y_pred: Sequence[Any], *, labels: Sequence[Any] | None = None
+) -> float:
+    """Return the unweighted mean intersection-over-union across classes.
+
+    Classes are discovered from targets and predictions unless ``labels`` is
+    provided. A class with no union contributes zero, making explicit label
+    sets safe for validation batches that omit a class.
+    """
+    actual, predicted = _validate_pair(y_true, y_pred)
+    if labels is None:
+        classes: list[Any] = []
+        for value in [*actual, *predicted]:
+            if value not in classes:
+                classes.append(value)
+    else:
+        classes = _as_labels(labels, "labels")
+        if len(classes) != len({repr(value) for value in classes}):
+            raise ValueError("labels must not contain duplicates")
+        unknown = [value for value in [*actual, *predicted] if value not in classes]
+        if unknown:
+            raise ValueError(f"labels do not include observed value: {unknown[0]!r}")
+    scores = []
+    for label in classes:
+        intersection = sum(target == label and guess == label for target, guess in zip(actual, predicted))
+        actual_count = sum(target == label for target in actual)
+        predicted_count = sum(guess == label for guess in predicted)
+        union = actual_count + predicted_count - intersection
+        scores.append(intersection / union if union else 0.0)
+    return sum(scores) / len(scores)
+
+
 def expected_calibration_error(
     correct: Sequence[bool], confidences: Sequence[float], *, n_bins: int = 10
 ) -> float:
@@ -214,6 +246,7 @@ __all__ = [
     "balanced_accuracy",
     "confusion_matrix",
     "macro_f1",
+    "mean_iou",
     "precision_recall_f1",
     "top_k_accuracy",
 ]
