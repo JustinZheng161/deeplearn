@@ -60,6 +60,7 @@ from .attention import attention_pool, causal_attention_mask, scaled_dot_product
 from .activations import gelu, leaky_relu, leaky_relu_derivative, mish, mish_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus
 from .pooling import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_pool, sum_pool, top_k_pool
 from .dropout import dropout, dropout_mask, feature_dropout, stochastic_depth
+from .sampling import categorical_sample, nucleus_filter, sample_logits, top_k_filter, top_p_sample
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -237,4 +238,9 @@ __all__ = [
     "dropout_mask",
     "feature_dropout",
     "stochastic_depth",
+    "categorical_sample",
+    "nucleus_filter",
+    "sample_logits",
+    "top_k_filter",
+    "top_p_sample",
 ]

@@ -526,6 +526,16 @@ hidden = dropout(hidden, rate=0.1, seed=42, training=is_training)
 output = stochastic_depth(residual, shortcut, drop_rate=0.2, seed=42, training=is_training)
 ```
 
+## Logit sampling
+
+`sample_logits` performs seeded temperature sampling for classification outputs. `top_k_filter` and `nucleus_filter` support constrained generation, while `top_p_sample` combines nucleus filtering with sampling:
+
+```python
+from deeplearn_utils import top_p_sample
+
+token_id = top_p_sample(next_token_logits, probability=0.9, temperature=0.8, seed=42)
+```
+
 Run the test suite with:
 
 ```bash
