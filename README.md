@@ -78,6 +78,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Kullback–Leibler divergence
+
+`kl_divergence` measures how far a predicted probability distribution is from a soft target distribution, making it useful for knowledge distillation and distribution matching:
+
+```python
+from deeplearn_utils import kl_divergence
+
+loss = kl_divergence(teacher_probabilities, student_probabilities)
+```
+
 ## Classification losses
 
 `categorical_cross_entropy` and `categorical_cross_entropy_batch` evaluate normalized hard or soft target distributions with stable probability clipping. They work directly with the output of `label_smoothed_targets`:

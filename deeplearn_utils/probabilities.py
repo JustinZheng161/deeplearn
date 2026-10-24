@@ -142,6 +142,38 @@ def brier_score_batch(
     return sum(scores) / len(scores)
 
 
+def kl_divergence(
+    target: Sequence[float], probabilities: Sequence[float], *, epsilon: float = 1e-15
+) -> float:
+    """Return ``KL(target || probabilities)`` for normalized distributions.
+
+    ``target`` may be a soft teacher distribution, so zero target entries are
+    omitted from the sum. Predicted probabilities are clipped only inside the
+    logarithm to keep tiny numerical underflow finite.
+    """
+    targets = _values(target, "target")
+    predicted = _values(probabilities, "probabilities")
+    if len(targets) != len(predicted):
+        raise ValueError("target and probabilities must have the same length")
+    if any(value < 0 for value in targets):
+        raise ValueError("target values must be non-negative")
+    if any(value < 0 or value > 1 for value in predicted):
+        raise ValueError("probabilities must be between zero and one")
+    if not math.isclose(sum(targets), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("target values must sum to one")
+    if not math.isclose(sum(predicted), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("probabilities must sum to one")
+    if isinstance(epsilon, bool) or not isinstance(epsilon, (int, float)):
+        raise TypeError("epsilon must be a number")
+    if not 0 < epsilon < 0.5 or not math.isfinite(epsilon):
+        raise ValueError("epsilon must be finite and between zero and one half")
+    return sum(
+        target_value * math.log(target_value / max(probability, epsilon))
+        for target_value, probability in zip(targets, predicted)
+        if target_value > 0
+    )
+
+
 def categorical_cross_entropy(
     target: Sequence[float],
     probabilities: Sequence[float],
@@ -202,6 +234,7 @@ __all__ = [
     "categorical_cross_entropy",
     "categorical_cross_entropy_batch",
     "categorical_entropy",
+    "kl_divergence",
     "log_softmax",
     "sigmoid",
     "softmax",

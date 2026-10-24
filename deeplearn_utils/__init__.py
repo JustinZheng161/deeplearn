@@ -82,6 +82,7 @@ from .validation import (
 from .probabilities import (
     binary_cross_entropy,
     categorical_entropy,
+    kl_divergence,
     log_softmax,
     sigmoid,
     softmax,
@@ -162,6 +163,7 @@ __all__ = [
     "stratified_kfold_indices",
     "binary_cross_entropy",
     "categorical_entropy",
+    "kl_divergence",
     "log_softmax",
     "sigmoid",
     "softmax",

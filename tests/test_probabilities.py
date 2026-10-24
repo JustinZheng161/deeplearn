@@ -5,6 +5,7 @@ import pytest
 from deeplearn_utils import (
     binary_cross_entropy,
     categorical_entropy,
+    kl_divergence,
     log_softmax,
     sigmoid,
     softmax,
@@ -41,6 +42,25 @@ def test_categorical_entropy_supports_nats_and_bits():
     assert categorical_entropy([0.5, 0.5]) == pytest.approx(math.log(2))
     assert categorical_entropy([0.5, 0.5], base=2) == pytest.approx(1.0)
     assert categorical_entropy([1.0, 0.0]) == pytest.approx(0.0)
+
+
+def test_kl_divergence_is_zero_for_identical_distributions():
+    assert kl_divergence([0.25, 0.75], [0.25, 0.75]) == pytest.approx(0.0)
+
+
+def test_kl_divergence_supports_soft_targets_and_zero_target_entries():
+    expected = 0.25 * math.log(0.25 / 0.5) + 0.75 * math.log(0.75 / 0.5)
+    assert kl_divergence([0.25, 0.75], [0.5, 0.5]) == pytest.approx(expected)
+    assert kl_divergence([1.0, 0.0], [0.5, 0.5]) == pytest.approx(math.log(2))
+
+
+def test_kl_divergence_validates_distributions_and_epsilon():
+    with pytest.raises(ValueError):
+        kl_divergence([0.5, 0.5], [1.0])
+    with pytest.raises(ValueError):
+        kl_divergence([0.5, 0.4], [0.5, 0.5])
+    with pytest.raises(ValueError):
+        kl_divergence([1.0, 0.0], [1.0, 0.0], epsilon=0)
 
 
 def test_binary_cross_entropy_clips_extreme_probabilities():
