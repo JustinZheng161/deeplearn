@@ -78,6 +78,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Logit cross-entropy
+
+`categorical_cross_entropy_with_logits` computes soft-target cross-entropy directly from logits using log-sum-exp stabilization, avoiding a separate softmax in training code:
+
+```python
+from deeplearn_utils import categorical_cross_entropy_with_logits
+
+loss = categorical_cross_entropy_with_logits(target_distribution, logits)
+```
+
 ## Kullback–Leibler divergence
 
 `kl_divergence` measures how far a predicted probability distribution is from a soft target distribution, making it useful for knowledge distillation and distribution matching:

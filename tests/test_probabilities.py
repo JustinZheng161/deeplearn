@@ -5,6 +5,7 @@ import pytest
 from deeplearn_utils import (
     binary_cross_entropy,
     categorical_entropy,
+    categorical_cross_entropy_with_logits,
     kl_divergence,
     log_softmax,
     sigmoid,
@@ -42,6 +43,24 @@ def test_categorical_entropy_supports_nats_and_bits():
     assert categorical_entropy([0.5, 0.5]) == pytest.approx(math.log(2))
     assert categorical_entropy([0.5, 0.5], base=2) == pytest.approx(1.0)
     assert categorical_entropy([1.0, 0.0]) == pytest.approx(0.0)
+
+
+def test_categorical_cross_entropy_with_logits_matches_probability_form():
+    logits = [1.0, 2.0, 3.0]
+    expected = -math.log(softmax(logits)[2])
+    assert categorical_cross_entropy_with_logits([0.0, 0.0, 1.0], logits) == pytest.approx(expected)
+    assert categorical_cross_entropy_with_logits([0.25, 0.75], [0.0, 0.0]) == pytest.approx(math.log(2))
+
+
+def test_categorical_cross_entropy_with_logits_is_stable_for_large_logits():
+    assert categorical_cross_entropy_with_logits([1.0, 0.0], [1000.0, 0.0]) == pytest.approx(0.0)
+
+
+def test_categorical_cross_entropy_with_logits_validates_targets():
+    with pytest.raises(ValueError, match="same length"):
+        categorical_cross_entropy_with_logits([1.0], [0.0, 1.0])
+    with pytest.raises(ValueError, match="sum to one"):
+        categorical_cross_entropy_with_logits([0.5, 0.4], [0.0, 1.0])
 
 
 def test_kl_divergence_is_zero_for_identical_distributions():

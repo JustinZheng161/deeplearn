@@ -174,6 +174,25 @@ def kl_divergence(
     )
 
 
+def categorical_cross_entropy_with_logits(
+    target: Sequence[float], logits: Sequence[float]
+) -> float:
+    """Return cross-entropy from logits without materializing softmax values.
+
+    The target distribution may be soft. Log probabilities are computed with
+    the log-sum-exp trick, so large-magnitude logits remain finite.
+    """
+    targets = _values(target, "target")
+    log_probabilities = log_softmax(logits)
+    if len(targets) != len(log_probabilities):
+        raise ValueError("target and logits must have the same length")
+    if any(value < 0 for value in targets):
+        raise ValueError("target values must be non-negative")
+    if not math.isclose(sum(targets), 1.0, rel_tol=1e-9, abs_tol=1e-9):
+        raise ValueError("target values must sum to one")
+    return -sum(target * log_probability for target, log_probability in zip(targets, log_probabilities) if target > 0)
+
+
 def categorical_cross_entropy(
     target: Sequence[float],
     probabilities: Sequence[float],
@@ -232,6 +251,7 @@ __all__ = [
     "brier_score",
     "brier_score_batch",
     "categorical_cross_entropy",
+    "categorical_cross_entropy_with_logits",
     "categorical_cross_entropy_batch",
     "categorical_entropy",
     "kl_divergence",
