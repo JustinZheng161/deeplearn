@@ -556,6 +556,16 @@ from deeplearn_utils import top_p_sample
 token_id = top_p_sample(next_token_logits, probability=0.9, temperature=0.8, seed=42)
 ```
 
+## Knowledge distillation
+
+`soft_targets` converts teacher logits into temperature-softened targets. `distillation_kl` measures teacher-to-student divergence, and `distillation_loss` blends it with hard-label cross entropy using `alpha`:
+
+```python
+from deeplearn_utils import distillation_loss
+
+loss = distillation_loss(student_logits, teacher_logits, labels, temperature=2.0, alpha=0.7)
+```
+
 Run the test suite with:
 
 ```bash
