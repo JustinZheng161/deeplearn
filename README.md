@@ -27,6 +27,18 @@ learning_rate = warmup_cosine_decay(
 )
 ```
 
+## One-cycle learning-rate scheduling
+
+`one_cycle_lr` raises the learning rate from `base_lr` to `max_lr` and then applies cosine decay to `final_lr`, which is useful for short training runs and super-convergence experiments:
+
+```python
+from deeplearn_utils import one_cycle_lr
+
+learning_rate = one_cycle_lr(
+    step, total_steps=10_000, base_lr=1e-5, max_lr=3e-4, final_lr=1e-6
+)
+```
+
 ## Dataset splitting
 
 `stratified_kfold` creates reproducible cross-validation folds while preserving class proportions in each validation set:

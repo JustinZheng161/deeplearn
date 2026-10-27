@@ -1,6 +1,30 @@
 import pytest
 
-from deeplearn_utils import warmup_cosine_decay
+from deeplearn_utils import one_cycle_lr, warmup_cosine_decay
+
+
+def test_one_cycle_rises_then_decays_to_final_rate():
+    values = [
+        one_cycle_lr(step, total_steps=10, base_lr=0.1, max_lr=1.0, final_lr=0.01, pct_start=0.4)
+        for step in range(10)
+    ]
+    assert values[0] == pytest.approx(0.1)
+    assert values[4] == pytest.approx(1.0)
+    assert values[-1] == pytest.approx(0.01)
+    assert values[5] < values[4]
+    assert values[8] > values[9]
+    assert one_cycle_lr(100, total_steps=10, base_lr=0.1, max_lr=1.0, final_lr=0.01) == pytest.approx(0.01)
+
+
+def test_one_cycle_validates_configuration():
+    with pytest.raises(ValueError):
+        one_cycle_lr(0, total_steps=1, base_lr=0.1, max_lr=1.0, final_lr=0.01)
+    with pytest.raises(ValueError):
+        one_cycle_lr(0, total_steps=10, base_lr=1.1, max_lr=1.0, final_lr=0.01)
+    with pytest.raises(ValueError):
+        one_cycle_lr(0, total_steps=10, base_lr=0.1, max_lr=1.0, final_lr=0.01, pct_start=1)
+    with pytest.raises(TypeError):
+        one_cycle_lr(True, total_steps=10, base_lr=0.1, max_lr=1.0, final_lr=0.01)
 
 
 def test_warmup_reaches_peak_learning_rate():
