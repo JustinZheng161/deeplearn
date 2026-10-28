@@ -578,6 +578,17 @@ from deeplearn_utils import distillation_loss
 loss = distillation_loss(student_logits, teacher_logits, labels, temperature=2.0, alpha=0.7)
 ```
 
+## Positional representations
+
+`sinusoidal_encoding` creates the original Transformer sine/cosine features, while `learned_position_lookup` gathers trainable position rows. `rotary_frequencies` and `rotate_pair` provide a compact RoPE primitive for even-dimensional vectors:
+
+```python
+from deeplearn_utils import add_position_encoding, sinusoidal_encoding
+
+positions = sinusoidal_encoding(sequence_length, hidden_size)
+encoded = add_position_encoding(hidden_states, positions)
+```
+
 Run the test suite with:
 
 ```bash
