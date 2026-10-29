@@ -206,6 +206,16 @@ from deeplearn_utils import group_lasso_penalty
 penalty = group_lasso_penalty(channel_weights, coefficient=0.01)
 ```
 
+## Rotary position encoding
+
+`rotate_sequence` applies rotary position embeddings to every row in a query or key sequence, preserving vector norms and supporting cached decoding through `offset`:
+
+```python
+from deeplearn_utils import rotate_sequence
+
+rotated_keys = rotate_sequence(key_states, offset=cache_length)
+```
+
 ## Top-k pooling
 
 `top_k_pool` averages the strongest `k` rows independently for each feature, retaining concentrated evidence while reducing sensitivity to one noisy activation:

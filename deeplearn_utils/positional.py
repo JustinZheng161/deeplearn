@@ -67,6 +67,28 @@ def rotate_pair(vector: Sequence[float], position: int, *, base: float = 10000.0
     return result
 
 
+def rotate_sequence(
+    vectors: Sequence[Sequence[float]], *, offset: int = 0, base: float = 10000.0
+) -> list[list[float]]:
+    """Apply rotary position embedding to every vector in a sequence.
+
+    Each row is rotated at ``offset + row_index``. A single validation pass
+    ensures all vectors share the same even feature dimension.
+    """
+    rows = [list(row) for row in vectors]
+    if not rows or not rows[0] or len(rows[0]) % 2:
+        raise ValueError("vectors must be a non-empty sequence of even-dimensional rows")
+    dimension = len(rows[0])
+    if any(len(row) != dimension for row in rows):
+        raise ValueError("vectors must be rectangular")
+    for row in rows:
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in row):
+            raise ValueError("vectors must contain finite numbers")
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+        raise ValueError("offset must be a non-negative integer")
+    return [rotate_pair(row, offset + index, base=base) for index, row in enumerate(rows)]
+
+
 def add_position_encoding(
     values: Sequence[Sequence[float]], encoding: Sequence[Sequence[float]]
 ) -> list[list[float]]:
@@ -83,4 +105,4 @@ def _positive_integer(value: int, name: str) -> None:
         raise ValueError(f"{name} must be a positive integer")
 
 
-__all__ = ["add_position_encoding", "learned_position_lookup", "rotate_pair", "rotary_frequencies", "sinusoidal_encoding"]
+__all__ = ["add_position_encoding", "learned_position_lookup", "rotate_pair", "rotate_sequence", "rotary_frequencies", "sinusoidal_encoding"]

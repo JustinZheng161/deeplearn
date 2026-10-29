@@ -62,7 +62,7 @@ from .pooling import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_po
 from .dropout import dropout, dropout_mask, feature_dropout, stochastic_depth
 from .sampling import categorical_sample, nucleus_filter, sample_logits, top_k_filter, top_p_sample
 from .distillation import distillation_kl, distillation_loss, hard_cross_entropy, soft_targets, teacher_student_agreement
-from .positional import add_position_encoding, learned_position_lookup, rotate_pair, rotary_frequencies, sinusoidal_encoding
+from .positional import add_position_encoding, learned_position_lookup, rotate_pair, rotate_sequence, rotary_frequencies, sinusoidal_encoding
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -258,6 +258,7 @@ __all__ = [
     "add_position_encoding",
     "learned_position_lookup",
     "rotate_pair",
+    "rotate_sequence",
     "rotary_frequencies",
     "sinusoidal_encoding",
 ]

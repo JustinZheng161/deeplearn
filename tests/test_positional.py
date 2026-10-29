@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from deeplearn_utils import add_position_encoding, learned_position_lookup, rotate_pair, rotary_frequencies, sinusoidal_encoding
+from deeplearn_utils import add_position_encoding, learned_position_lookup, rotate_pair, rotate_sequence, rotary_frequencies, sinusoidal_encoding
 
 
 def test_sinusoidal_encoding_has_expected_shape_and_first_row():
@@ -45,6 +45,14 @@ def test_rotate_pair_preserves_vector_norm():
     assert rotate_pair(original, position=0) == pytest.approx(original)
 
 
+def test_rotate_sequence_applies_incrementing_positions():
+    vectors = [[1.0, 0.0], [0.0, 1.0]]
+    result = rotate_sequence(vectors, offset=3)
+    assert result[0] == pytest.approx(rotate_pair(vectors[0], 3))
+    assert result[1] == pytest.approx(rotate_pair(vectors[1], 4))
+    assert [sum(value * value for value in row) for row in result] == pytest.approx([1.0, 1.0])
+
+
 def test_position_helpers_validate_shape_and_ranges():
     with pytest.raises(ValueError):
         sinusoidal_encoding(0, 4)
@@ -65,3 +73,9 @@ def test_rotary_helpers_validate_parameters():
         rotate_pair([1, 2, 3], 1)
     with pytest.raises(ValueError):
         rotate_pair([1, 2], -1)
+    with pytest.raises(ValueError):
+        rotate_sequence([[1, 2], [3]], offset=0)
+    with pytest.raises(ValueError):
+        rotate_sequence([[1, 2, 3]], offset=0)
+    with pytest.raises(ValueError):
+        rotate_sequence([[1, 2]], offset=-1)
