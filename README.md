@@ -599,6 +599,17 @@ positions = sinusoidal_encoding(sequence_length, hidden_size)
 encoded = add_position_encoding(hidden_states, positions)
 ```
 
+## Multi-label metrics
+
+For independent multi-label outputs, `threshold_predictions` converts probabilities into indicator rows. The package also provides Hamming loss, exact subset accuracy, sample/label Jaccard, and micro F1:
+
+```python
+from deeplearn_utils import hamming_loss, micro_f1, threshold_predictions
+
+predicted = threshold_predictions(probabilities, threshold=0.4)
+score = micro_f1(predicted, target_indicators)
+```
+
 Run the test suite with:
 
 ```bash

@@ -70,6 +70,18 @@ def rotate_pair(vector: Sequence[float], position: int, *, base: float = 10000.0
 def rotate_sequence(
     vectors: Sequence[Sequence[float]], *, offset: int = 0, base: float = 10000.0
 ) -> list[list[float]]:
+    """Apply RoPE to each vector at consecutive positions."""
+    rows = [list(row) for row in vectors]
+    if not rows:
+        raise ValueError("vectors must not be empty")
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+        raise ValueError("offset must be a non-negative integer")
+    return [rotate_pair(row, offset + index, base=base) for index, row in enumerate(rows)]
+
+
+def rotate_sequence(
+    vectors: Sequence[Sequence[float]], *, offset: int = 0, base: float = 10000.0
+) -> list[list[float]]:
     """Apply rotary position embedding to every vector in a sequence.
 
     Each row is rotated at ``offset + row_index``. A single validation pass
