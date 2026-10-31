@@ -77,6 +77,25 @@ def jaccard_score(predictions: Sequence[Sequence[int]], targets: Sequence[Sequen
     return sum(scores) / len(scores)
 
 
+def multilabel_macro_f1(
+    predictions: Sequence[Sequence[int]], targets: Sequence[Sequence[int]]
+) -> float:
+    """Return the unweighted mean F1 across independent labels.
+
+    Each label receives equal weight, which prevents common labels from
+    dominating evaluation when a multi-label dataset is imbalanced.
+    """
+    predicted, expected = _paired(predictions, targets)
+    scores = []
+    for column in range(len(predicted[0])):
+        true_positive = sum(row[column] == target[column] == 1 for row, target in zip(predicted, expected))
+        false_positive = sum(row[column] == 1 and target[column] == 0 for row, target in zip(predicted, expected))
+        false_negative = sum(row[column] == 0 and target[column] == 1 for row, target in zip(predicted, expected))
+        denominator = 2 * true_positive + false_positive + false_negative
+        scores.append(2 * true_positive / denominator if denominator else 0.0)
+    return sum(scores) / len(scores)
+
+
 def micro_f1(predictions: Sequence[Sequence[int]], targets: Sequence[Sequence[int]]) -> float:
     """Return F1 after pooling decisions over all samples and labels."""
     predicted, expected = _paired(predictions, targets)
@@ -87,4 +106,4 @@ def micro_f1(predictions: Sequence[Sequence[int]], targets: Sequence[Sequence[in
     return 2 * true_positive / denominator if denominator else 1.0
 
 
-__all__ = ["hamming_loss", "jaccard_score", "micro_f1", "subset_accuracy", "threshold_predictions"]
+__all__ = ["hamming_loss", "jaccard_score", "micro_f1", "multilabel_macro_f1", "subset_accuracy", "threshold_predictions"]

@@ -206,6 +206,16 @@ from deeplearn_utils import group_lasso_penalty
 penalty = group_lasso_penalty(channel_weights, coefficient=0.01)
 ```
 
+## Multi-label macro F1
+
+`multilabel_macro_f1` averages F1 independently across labels, preventing frequent labels from dominating evaluation on imbalanced multi-label datasets:
+
+```python
+from deeplearn_utils import multilabel_macro_f1
+
+score = multilabel_macro_f1(predictions, targets)
+```
+
 ## Rotary position encoding
 
 `rotate_sequence` applies rotary position embeddings to every row in a query or key sequence, preserving vector norms and supporting cached decoding through `offset`:
