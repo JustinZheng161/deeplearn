@@ -90,6 +90,7 @@ from .probabilities import (
     log_softmax,
     sigmoid,
     softmax,
+    sparsemax,
     softmax_batch,
 )
 from .thresholds import ThresholdResult, best_threshold, binary_predictions, confusion_at_threshold
@@ -173,6 +174,7 @@ __all__ = [
     "log_softmax",
     "sigmoid",
     "softmax",
+    "sparsemax",
     "softmax_batch",
     "ThresholdResult",
     "best_threshold",

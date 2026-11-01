@@ -35,6 +35,26 @@ def sigmoid(value: float) -> float:
     return exponential / (1.0 + exponential)
 
 
+def sparsemax(logits: Sequence[float]) -> list[float]:
+    """Map logits to a sparse probability distribution.
+
+    Sparsemax is the Euclidean projection of logits onto the probability
+    simplex, so low-scoring classes receive exact zero probability.
+    """
+    values = _values(logits, "logits")
+    ordered = sorted(values, reverse=True)
+    cumulative = 0.0
+    support = 0
+    for index, value in enumerate(ordered, start=1):
+        cumulative += value
+        if 1.0 + index * value > cumulative:
+            support = index
+    if support == 0:
+        raise ValueError("logits do not define a sparsemax support")
+    threshold = (sum(ordered[:support]) - 1.0) / support
+    return [max(value - threshold, 0.0) for value in values]
+
+
 def softmax(logits: Sequence[float]) -> list[float]:
     """Convert logits to a probability vector using max-shift stabilization."""
     values = _values(logits, "logits")
@@ -258,5 +278,6 @@ __all__ = [
     "log_softmax",
     "sigmoid",
     "softmax",
+    "sparsemax",
     "softmax_batch",
 ]

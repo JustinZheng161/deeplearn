@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Sparse probability transforms
+
+`sparsemax` projects logits onto the probability simplex and assigns exact zero probability to low-scoring classes, which is useful for sparse attention and interpretable outputs:
+
+```python
+from deeplearn_utils import sparsemax
+
+probabilities = sparsemax(logits)
+```
+
 ## Logit cross-entropy
 
 `categorical_cross_entropy_with_logits` computes soft-target cross-entropy directly from logits using log-sum-exp stabilization, avoiding a separate softmax in training code:

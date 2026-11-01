@@ -10,6 +10,7 @@ from deeplearn_utils import (
     log_softmax,
     sigmoid,
     softmax,
+    sparsemax,
     softmax_batch,
 )
 
@@ -18,6 +19,13 @@ def test_sigmoid_is_stable_for_large_positive_and_negative_values():
     assert sigmoid(1000) == pytest.approx(1.0)
     assert sigmoid(-1000) == pytest.approx(0.0)
     assert sigmoid(0) == pytest.approx(0.5)
+
+
+def test_sparsemax_is_normalized_and_produces_exact_zeros():
+    values = sparsemax([3.0, 1.0, -2.0])
+    assert values == pytest.approx([1.0, 0.0, 0.0])
+    assert sum(values) == pytest.approx(1.0)
+    assert sparsemax([101.0, 99.0, 96.0]) == pytest.approx(values)
 
 
 def test_softmax_sums_to_one_and_is_shift_invariant():
@@ -92,6 +100,8 @@ def test_binary_cross_entropy_clips_extreme_probabilities():
 def test_probability_transforms_validate_sequences(values):
     with pytest.raises((TypeError, ValueError)):
         softmax(values)
+    with pytest.raises((TypeError, ValueError)):
+        sparsemax(values)
 
 
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), "1"])
