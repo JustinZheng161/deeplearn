@@ -64,6 +64,7 @@ from .sampling import categorical_sample, nucleus_filter, sample_logits, top_k_f
 from .distillation import distillation_kl, distillation_loss, hard_cross_entropy, soft_targets, teacher_student_agreement
 from .positional import add_position_encoding, learned_position_lookup, rotate_pair, rotate_sequence, rotary_frequencies, sinusoidal_encoding
 from .multilabel import hamming_loss, jaccard_score, micro_f1, multilabel_macro_f1, subset_accuracy, threshold_predictions
+from .sparse_losses import sparse_brier_score, sparse_cross_entropy, sparse_entropy, support_size, top_k_mass, top_probability
 from .augmentation import (
     add_gaussian_noise,
     compose_augmentations,
@@ -271,4 +272,10 @@ __all__ = [
     "multilabel_macro_f1",
     "subset_accuracy",
     "threshold_predictions",
+    "sparse_brier_score",
+    "sparse_cross_entropy",
+    "sparse_entropy",
+    "support_size",
+    "top_k_mass",
+    "top_probability",
 ]

@@ -635,3 +635,14 @@ Run the test suite with:
 ```bash
 python -m pytest
 ```
+
+## Sparse probability diagnostics
+
+For Sparsemax-style outputs, `sparse_cross_entropy`, `sparse_entropy`, `support_size`, `top_probability`, and `top_k_mass` expose compact loss and confidence diagnostics. `sparse_brier_score` complements the existing multiclass calibration tools:
+
+```python
+from deeplearn_utils import sparse_cross_entropy, support_size
+
+loss = sparse_cross_entropy(sparse_probabilities, target_class)
+active_classes = support_size(sparse_probabilities)
+```
