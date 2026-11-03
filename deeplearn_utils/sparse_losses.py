@@ -28,6 +28,25 @@ def sparse_cross_entropy(probabilities: Sequence[float], target: int) -> float:
     return -math.log(max(values[target], 1e-15))
 
 
+def sparse_focal_loss(
+    probabilities: Sequence[float], target: int, *, gamma: float = 2.0, alpha: float = 1.0
+) -> float:
+    """Return focal loss for one sparse target label.
+
+    ``gamma`` downweights easy examples while ``alpha`` provides a simple
+    scalar class weight for callers using class-specific sampling externally.
+    """
+    values = _probabilities(probabilities)
+    if isinstance(target, bool) or not isinstance(target, int) or not 0 <= target < len(values):
+        raise ValueError("target must be a valid class index")
+    if isinstance(gamma, bool) or not isinstance(gamma, (int, float)) or not math.isfinite(gamma) or gamma < 0:
+        raise ValueError("gamma must be finite and non-negative")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)) or not math.isfinite(alpha) or alpha < 0:
+        raise ValueError("alpha must be finite and non-negative")
+    target_probability = max(values[target], 1e-15)
+    return float(-alpha * (1.0 - target_probability) ** float(gamma) * math.log(target_probability))
+
+
 def sparse_entropy(probabilities: Sequence[float]) -> float:
     """Return Shannon entropy, ignoring exact zero probabilities."""
     return -sum(value * math.log(value) for value in _probabilities(probabilities) if value > 0)
@@ -64,4 +83,4 @@ def sparse_brier_score(probabilities: Sequence[float], target: int) -> float:
     return sum((value - (1.0 if index == target else 0.0)) ** 2 for index, value in enumerate(values))
 
 
-__all__ = ["sparse_brier_score", "sparse_cross_entropy", "sparse_entropy", "support_size", "top_k_mass", "top_probability"]
+__all__ = ["sparse_brier_score", "sparse_cross_entropy", "sparse_entropy", "sparse_focal_loss", "support_size", "top_k_mass", "top_probability"]

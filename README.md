@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Sparse focal loss
+
+`sparse_focal_loss` downweights easy examples with `gamma` and supports scalar class weighting through `alpha`, making it useful for imbalanced classification:
+
+```python
+from deeplearn_utils import sparse_focal_loss
+
+loss = sparse_focal_loss(probabilities, target_class, gamma=2.0)
+```
+
 ## Sparse probability transforms
 
 `sparsemax` projects logits onto the probability simplex and assigns exact zero probability to low-scoring classes, which is useful for sparse attention and interpretable outputs:

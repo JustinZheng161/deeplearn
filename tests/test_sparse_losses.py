@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from deeplearn_utils import sparse_brier_score, sparse_cross_entropy, sparse_entropy, support_size, top_k_mass, top_probability
+from deeplearn_utils import sparse_brier_score, sparse_cross_entropy, sparse_entropy, sparse_focal_loss, support_size, top_k_mass, top_probability
 
 
 def test_sparse_cross_entropy_and_entropy_handle_zero_mass():
@@ -23,6 +23,14 @@ def test_top_k_mass_is_monotonic():
     assert top_k_mass(values, 1) == pytest.approx(0.6)
     assert top_k_mass(values, 2) == pytest.approx(0.8)
     assert top_k_mass(values, 4) == pytest.approx(1.0)
+
+
+def test_sparse_focal_loss_downweights_easy_examples_and_supports_alpha():
+    easy = sparse_focal_loss([0.9, 0.1], 0, gamma=2.0)
+    hard = sparse_focal_loss([0.6, 0.4], 0, gamma=2.0)
+    assert easy < hard
+    assert sparse_focal_loss([0.5, 0.5], 0, gamma=0.0) == pytest.approx(math.log(2))
+    assert sparse_focal_loss([0.5, 0.5], 0, gamma=0.0, alpha=0.25) == pytest.approx(math.log(2) / 4)
 
 
 def test_sparse_brier_score_rewards_confident_correct_predictions():
@@ -49,3 +57,7 @@ def test_sparse_helpers_validate_parameters():
         top_k_mass([1.0], 0)
     with pytest.raises(ValueError):
         sparse_entropy([float("nan"), 0.0])
+    with pytest.raises(ValueError):
+        sparse_focal_loss([0.5, 0.5], 0, gamma=-1)
+    with pytest.raises(ValueError):
+        sparse_focal_loss([0.5, 0.5], 0, alpha=-1)
