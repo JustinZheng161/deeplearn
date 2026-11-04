@@ -8,7 +8,7 @@ from .reproducibility import (
     seed_everything,
 )
 from .data import class_balanced_weights, stratified_kfold, stratified_split
-from .schedules import one_cycle_lr, warmup_cosine_decay
+from .schedules import cosine_restart, inverse_sqrt_decay, one_cycle_lr, polynomial_decay, warmup_cosine_decay
 from .regression import (
     huber_loss,
     huber_loss_batch,
@@ -127,6 +127,9 @@ __all__ = [
     "stratified_split",
     "one_cycle_lr",
     "warmup_cosine_decay",
+    "cosine_restart",
+    "inverse_sqrt_decay",
+    "polynomial_decay",
     "huber_loss",
     "huber_loss_batch",
     "mean_absolute_error",

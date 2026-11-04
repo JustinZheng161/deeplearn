@@ -656,3 +656,14 @@ from deeplearn_utils import sparse_cross_entropy, support_size
 loss = sparse_cross_entropy(sparse_probabilities, target_class)
 active_classes = support_size(sparse_probabilities)
 ```
+
+
+## Additional learning-rate schedules
+
+The package also provides `polynomial_decay`, Transformer-style `inverse_sqrt_decay`, and `cosine_restart` schedules. Each returns a plain float and validates its step and rate parameters:
+
+```python
+from deeplearn_utils import cosine_restart
+
+learning_rate = cosine_restart(step, first_period=1_000, peak_lr=3e-4, min_lr=1e-6)
+```
