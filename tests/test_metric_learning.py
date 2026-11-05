@@ -3,6 +3,7 @@ import pytest
 from deeplearn_utils import (
     batch_hard_triplet_loss,
     contrastive_loss,
+    cosine_embedding_loss,
     pairwise_distance_matrix,
     triplet_margin_loss,
 )
@@ -22,6 +23,15 @@ def test_contrastive_loss_rewards_similar_and_separated_pairs():
     assert similar < 0.02
     assert separated == pytest.approx(0.0)
     assert violating > 0
+
+
+def test_cosine_embedding_loss_handles_similar_and_dissimilar_pairs():
+    similar = cosine_embedding_loss([[1, 0]], [[1, 0]], [1])
+    separated = cosine_embedding_loss([[1, 0]], [[0, 1]], [-1], margin=0.2)
+    violating = cosine_embedding_loss([[1, 0]], [[1, 0]], [-1], margin=0.2)
+    assert similar == pytest.approx(0.0)
+    assert separated == pytest.approx(0.0)
+    assert violating == pytest.approx(0.8)
 
 
 def test_triplet_margin_loss_is_zero_when_ordering_has_margin():
@@ -69,6 +79,12 @@ def test_metric_losses_validate_margin_and_dimensions():
         contrastive_loss([[0]], [[1]], [1], margin=0)
     with pytest.raises(ValueError, match="dimension"):
         triplet_margin_loss([[0]], [[0, 1]], [[1]])
+    with pytest.raises(ValueError):
+        cosine_embedding_loss([[1, 0]], [[1, 0]], [0])
+    with pytest.raises(ValueError):
+        cosine_embedding_loss([[1, 0]], [[1, 0]], [1], margin=2)
+    with pytest.raises(ValueError, match="zero vectors"):
+        cosine_embedding_loss([[0, 0]], [[1, 0]], [1])
 
 
 def test_supervised_contrastive_loss_is_finite_and_uses_same_class_positives():

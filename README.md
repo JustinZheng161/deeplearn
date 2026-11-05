@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Cosine embedding loss
+
+`cosine_embedding_loss` trains paired embeddings with cosine similarity: similar pairs approach one, while dissimilar pairs are penalized only above the configured margin.
+
+```python
+from deeplearn_utils import cosine_embedding_loss
+
+loss = cosine_embedding_loss(left_embeddings, right_embeddings, labels, margin=0.2)
+```
+
 ## Sparse focal loss
 
 `sparse_focal_loss` downweights easy examples with `gamma` and supports scalar class weighting through `alpha`, making it useful for imbalanced classification:

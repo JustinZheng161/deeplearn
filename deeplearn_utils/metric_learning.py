@@ -57,6 +57,42 @@ def contrastive_loss(
     return sum(losses) / len(losses)
 
 
+def cosine_embedding_loss(
+    left: Sequence[Sequence[float]],
+    right: Sequence[Sequence[float]],
+    labels: Sequence[int],
+    *,
+    margin: float = 0.0,
+) -> float:
+    """Return pairwise cosine embedding loss for similar and dissimilar pairs.
+
+    Similar pairs minimize ``1 - cosine_similarity``; dissimilar pairs are
+    penalized only when their similarity exceeds ``margin``.
+    """
+    first = _vectors(left)
+    second = _vectors(right)
+    targets = list(labels)
+    if len(first) != len(second) or len(first) != len(targets):
+        raise ValueError("left, right, and labels must have the same length")
+    if len(first[0]) != len(second[0]):
+        raise ValueError("embedding vectors must have the same dimension")
+    if isinstance(margin, bool) or not isinstance(margin, (int, float)) or not math.isfinite(margin):
+        raise ValueError("margin must be finite")
+    if not -1 <= margin <= 1:
+        raise ValueError("margin must be between -1 and one")
+    losses = []
+    for one, two, label in zip(first, second, targets):
+        if isinstance(label, bool) or label not in {-1, 1}:
+            raise ValueError("labels must contain only negative one or one")
+        left_norm = math.sqrt(sum(value * value for value in one))
+        right_norm = math.sqrt(sum(value * value for value in two))
+        if left_norm == 0 or right_norm == 0:
+            raise ValueError("embedding vectors must not be zero vectors")
+        similarity = sum(a * b for a, b in zip(one, two)) / (left_norm * right_norm)
+        losses.append(1.0 - similarity if label == 1 else max(0.0, similarity - float(margin)))
+    return sum(losses) / len(losses)
+
+
 def triplet_margin_loss(
     anchors: Sequence[Sequence[float]],
     positives: Sequence[Sequence[float]],
@@ -154,6 +190,7 @@ def batch_hard_triplet_loss(
 __all__ = [
     "batch_hard_triplet_loss",
     "contrastive_loss",
+    "cosine_embedding_loss",
     "pairwise_distance_matrix",
     "supervised_contrastive_loss",
     "triplet_margin_loss",
