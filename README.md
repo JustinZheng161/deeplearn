@@ -677,3 +677,15 @@ from deeplearn_utils import cosine_restart
 
 learning_rate = cosine_restart(step, first_period=1_000, peak_lr=3e-4, min_lr=1e-6)
 ```
+
+## Ranking metrics for binary models
+
+For imbalanced binary classification, threshold-free metrics are often more informative than accuracy. `roc_auc` measures ranking quality, `average_precision` summarizes the precision-recall curve, and `best_f1_threshold` selects a validated operating point:
+
+```python
+from deeplearn_utils import average_precision, best_f1_threshold, roc_auc
+
+auc = roc_auc(scores, labels)
+ap = average_precision(scores, labels)
+threshold, f1 = best_f1_threshold(scores, labels)
+```
