@@ -5,6 +5,7 @@ import pytest
 from deeplearn_utils import (
     cosine_similarity,
     mean_average_precision,
+    hit_rate_at_k,
     mean_reciprocal_rank,
     ranked_indices,
     recall_at_k,
@@ -38,6 +39,13 @@ def test_recall_at_k_counts_relevant_results_per_query():
     assert recall_at_k(ranked, relevant, k=3) == pytest.approx(1.0)
 
 
+def test_hit_rate_at_k_counts_queries_with_any_relevant_result():
+    ranked = [[2, 0, 1], [1, 3, 2], [5, 6, 7]]
+    relevant = [[0, 1], [2, 3], [4]]
+    assert hit_rate_at_k(ranked, relevant, k=2) == pytest.approx(2 / 3)
+    assert hit_rate_at_k(ranked, relevant, k=3) == pytest.approx(2 / 3)
+
+
 def test_mean_reciprocal_rank_finds_first_relevant_result():
     ranked = [[4, 2, 1], [0, 3, 1]]
     relevant = [[1, 2], [3]]
@@ -55,7 +63,7 @@ def test_retrieval_metrics_return_zero_without_hits():
     relevant = [[4], [5]]
     assert recall_at_k(ranked, relevant) == 0.0
     assert mean_reciprocal_rank(ranked, relevant) == 0.0
-    assert mean_average_precision(ranked, relevant) == 0.0
+    assert mean_average_precision([[0, 1]], [[3]],) == 0.0
 
 
 @pytest.mark.parametrize("vectors", [[], [[1, 2], [3]], "abc"])

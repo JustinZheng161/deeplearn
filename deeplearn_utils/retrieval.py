@@ -88,6 +88,15 @@ def precision_at_k(
     return sum(precisions) / len(precisions)
 
 
+def hit_rate_at_k(
+    ranked: Sequence[Sequence[int]], relevant: Sequence[Sequence[int]], *, k: int = 10
+) -> float:
+    """Return the fraction of queries with at least one relevant top-k hit."""
+    rankings, relevant_sets = _validate_rankings(ranked, relevant, k)
+    hits = [bool(set(ranking[:k]) & expected) for ranking, expected in zip(rankings, relevant_sets)]
+    return sum(hits) / len(hits)
+
+
 def ndcg_at_k(
     ranked: Sequence[Sequence[int]], relevant: Sequence[Sequence[int]], *, k: int = 10
 ) -> float:
@@ -168,6 +177,7 @@ def _validate_rankings(
 __all__ = [
     "cosine_similarity",
     "mean_average_precision",
+    "hit_rate_at_k",
     "ndcg_at_k",
     "precision_at_k",
     "mean_reciprocal_rank",

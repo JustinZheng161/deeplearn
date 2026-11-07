@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Retrieval hit rate
+
+`hit_rate_at_k` reports the fraction of queries with at least one relevant result in the first `k` positions, which is useful when a search result needs only one successful match:
+
+```python
+from deeplearn_utils import hit_rate_at_k
+
+score = hit_rate_at_k(ranked_results, relevant_items, k=10)
+```
+
 ## Cosine embedding loss
 
 `cosine_embedding_loss` trains paired embeddings with cosine similarity: similar pairs approach one, while dissimilar pairs are penalized only above the configured margin.
