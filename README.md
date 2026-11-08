@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Multiclass focal loss from logits
+
+`multiclass_focal_loss_with_logits` computes focal loss directly from unnormalized logits using a stable log-sum-exp calculation, avoiding a separate softmax in training code:
+
+```python
+from deeplearn_utils import multiclass_focal_loss_with_logits
+
+loss = multiclass_focal_loss_with_logits(labels, logits, gamma=2.0)
+```
+
 ## Retrieval hit rate
 
 `hit_rate_at_k` reports the fraction of queries with at least one relevant result in the first `k` positions, which is useful when a search result needs only one successful match:

@@ -70,6 +70,36 @@ def multiclass_focal_loss(
     return sum(losses) / len(losses)
 
 
+def multiclass_focal_loss_with_logits(
+    targets: Sequence[int], logits: Sequence[Sequence[float]], *, gamma: float = 2.0, alpha: float = 1.0
+) -> float:
+    """Return mean multiclass focal loss directly from unnormalized logits."""
+    labels = list(targets)
+    rows = [list(row) for row in logits]
+    if not labels or len(labels) != len(rows):
+        raise ValueError("targets and logits must have the same non-zero length")
+    if isinstance(gamma, bool) or not isinstance(gamma, (int, float)) or not math.isfinite(gamma) or gamma < 0:
+        raise ValueError("gamma must be a finite non-negative number")
+    if isinstance(alpha, bool) or not isinstance(alpha, (int, float)) or not math.isfinite(alpha) or alpha <= 0:
+        raise ValueError("alpha must be a positive finite number")
+    losses = []
+    class_count = None
+    for target, row in zip(labels, rows):
+        if isinstance(target, bool) or not isinstance(target, int):
+            raise TypeError("targets must contain integer class indices")
+        if not row or any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in row):
+            raise ValueError("logit rows must contain finite numbers")
+        class_count = class_count or len(row)
+        if len(row) != class_count or target < 0 or target >= len(row):
+            raise ValueError("invalid class index or inconsistent class count")
+        maximum = max(row)
+        log_normalizer = maximum + math.log(sum(math.exp(value - maximum) for value in row))
+        log_probability = row[target] - log_normalizer
+        probability = math.exp(log_probability)
+        losses.append(-float(alpha) * (1.0 - probability) ** float(gamma) * log_probability)
+    return sum(losses) / len(losses)
+
+
 def dice_coefficient(
     targets: Sequence[float], probabilities: Sequence[float], *, smooth: float = 1.0
 ) -> float:
@@ -143,6 +173,7 @@ __all__ = [
     "dice_coefficient",
     "dice_loss",
     "multiclass_focal_loss",
+    "multiclass_focal_loss_with_logits",
     "tversky_index",
     "tversky_loss",
 ]

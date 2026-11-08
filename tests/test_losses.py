@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from deeplearn_utils import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss
+from deeplearn_utils import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss, multiclass_focal_loss_with_logits
 
 
 def test_binary_focal_loss_is_lower_for_confident_correct_predictions():
@@ -21,6 +21,14 @@ def test_multiclass_focal_loss_validates_normalized_rows():
     loss = multiclass_focal_loss([0, 1], [[0.9, 0.1], [0.2, 0.8]])
     assert loss > 0
     assert loss < multiclass_focal_loss([0, 1], [[0.5, 0.5], [0.5, 0.5]])
+
+
+def test_multiclass_focal_logits_is_stable_and_matches_probability_form():
+    logits = [[2.0, 0.0], [0.0, 2.0]]
+    probabilities = [[0.8807970779, 0.1192029221], [0.1192029221, 0.8807970779]]
+    expected = multiclass_focal_loss([0, 1], probabilities)
+    assert multiclass_focal_loss_with_logits([0, 1], logits) == pytest.approx(expected)
+    assert math.isfinite(multiclass_focal_loss_with_logits([0], [[1000.0, 0.0]]))
 
 
 def test_dice_coefficient_and_loss_are_complements():
@@ -56,6 +64,12 @@ def test_multiclass_focal_validates_shapes_and_probability_sums():
         multiclass_focal_loss([2], [[0.5, 0.5]])
     with pytest.raises(ValueError):
         multiclass_focal_loss([0, 1], [[1.0, 0.0], [1.0]])
+    with pytest.raises(ValueError):
+        multiclass_focal_loss_with_logits([0], [[1.0, 2.0]], gamma=-1)
+    with pytest.raises(ValueError):
+        multiclass_focal_loss_with_logits([2], [[1.0, 2.0]])
+    with pytest.raises(ValueError):
+        multiclass_focal_loss_with_logits([0, 1], [[1.0, 2.0], [1.0]])
 
 
 def test_dice_validates_values_and_shapes():
