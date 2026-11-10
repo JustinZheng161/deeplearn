@@ -101,6 +101,29 @@ def test_early_stopping_validates_configuration(kwargs):
         EarlyStopping(**kwargs)
 
 
+def test_centralize_gradients_removes_each_row_mean_without_mutation():
+    from deeplearn_utils import centralize_gradients
+
+    gradients = [[1.0, 2.0, 3.0], [], [-2.0, 2.0]]
+    result = centralize_gradients(gradients)
+    assert result[0] == pytest.approx([-1.0, 0.0, 1.0])
+    assert result[1] == []
+    assert result[2] == pytest.approx([-2.0, 2.0])
+    assert gradients == [[1.0, 2.0, 3.0], [], [-2.0, 2.0]]
+    assert sum(result[0]) == pytest.approx(0.0)
+
+
+def test_centralize_gradients_validates_input():
+    from deeplearn_utils import centralize_gradients
+
+    with pytest.raises(ValueError):
+        centralize_gradients([])
+    with pytest.raises(TypeError):
+        centralize_gradients([[1.0, "bad"]])
+    with pytest.raises(ValueError):
+        centralize_gradients([[float("nan")]])
+
+
 def test_clip_by_global_norm_scales_all_gradients_uniformly():
     from deeplearn_utils import clip_by_global_norm
 

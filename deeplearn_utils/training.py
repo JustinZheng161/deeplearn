@@ -7,6 +7,7 @@ specific framework into this dependency-light package.
 
 from __future__ import annotations
 
+import math
 import random
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, field
@@ -63,6 +64,32 @@ def iter_minibatches(
         raise ValueError("features and targets must have the same length")
     for indices in batch_indices(len(features), batch_size, shuffle=shuffle, seed=seed):
         yield ([features[index] for index in indices], [targets[index] for index in indices])
+
+
+def centralize_gradients(gradients: Sequence[Sequence[float]]) -> list[list[float]]:
+    """Subtract each gradient row's mean while preserving its shape.
+
+    Gradient centralization can reduce covariance between parameters in dense
+    or convolutional layers. Empty rows are preserved, and the input is not
+    mutated.
+    """
+    if isinstance(gradients, (str, bytes)):
+        raise TypeError("gradients must be a sequence of vectors")
+    try:
+        rows = [list(row) for row in gradients]
+    except TypeError as exc:
+        raise TypeError("gradients must be a sequence of vectors") from exc
+    if not rows:
+        raise ValueError("gradients must not be empty")
+    result = []
+    for row in rows:
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in row):
+            raise TypeError("gradients must contain numbers")
+        if any(not math.isfinite(value) for value in row):
+            raise ValueError("gradients must contain finite numbers")
+        mean = sum(float(value) for value in row) / len(row) if row else 0.0
+        result.append([float(value) - mean for value in row])
+    return result
 
 
 def clip_by_global_norm(
@@ -292,5 +319,6 @@ __all__ = [
     "clip_by_global_norm",
     "RunningAverage",
     "batch_indices",
+    "centralize_gradients",
     "iter_minibatches",
 ]

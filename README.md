@@ -90,6 +90,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Gradient centralization
+
+`centralize_gradients` subtracts the mean from each gradient vector without mutating the input, providing a lightweight optimization-stability step before clipping or applying an optimizer:
+
+```python
+from deeplearn_utils import centralize_gradients
+
+gradients = centralize_gradients(gradients)
+```
+
 ## Multiclass focal loss from logits
 
 `multiclass_focal_loss_with_logits` computes focal loss directly from unnormalized logits using a stable log-sum-exp calculation, avoiding a separate softmax in training code:
