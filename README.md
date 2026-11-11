@@ -80,6 +80,20 @@ from deeplearn_utils import mean_iou
 score = mean_iou(target_labels, predicted_labels, labels=class_ids)
 ```
 
+## Adaptive and classwise calibration
+
+`adaptive_calibration_error` uses equal-count confidence bins, which is more
+stable than fixed-width ECE when model confidences are concentrated. For
+multiclass predictions, `classwise_calibration_error` reports one-vs-rest ECE
+for each probability column:
+
+```python
+from deeplearn_utils import adaptive_calibration_error, classwise_calibration_error
+
+ece = adaptive_calibration_error(correct, confidences, n_bins=10)
+per_class = classwise_calibration_error(labels, probability_rows, n_bins=10)
+```
+
 ## Probability calibration
 
 `brier_score` and `brier_score_batch` measure squared probability error for multiclass predictions. Lower scores indicate better probabilistic forecasts, and soft targets are supported alongside the existing expected calibration error helper:
