@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import attention_pool, causal_attention_mask, scaled_dot_product_attention
+from deeplearn_utils import attention_pool, causal_attention_mask, multi_head_attention, scaled_dot_product_attention
 
 
 def test_attention_returns_normalized_weights_and_weighted_values():
@@ -17,6 +17,17 @@ def test_attention_mask_blocks_keys_and_handles_fully_masked_rows():
     assert output[0] == pytest.approx([2.0, 0.0])
     assert weights[1] == [0.0, 0.0]
     assert output[1] == [0.0, 0.0]
+
+
+def test_multi_head_attention_concatenates_head_outputs_and_weights():
+    queries = [[1, 0, 0, 1]]
+    keys = [[1, 0, 0, 1], [0, 1, 1, 0]]
+    values = [[2, 4, 10, 20], [6, 8, 30, 40]]
+    output, weights = multi_head_attention(queries, keys, values, heads=2, mask=[[True, False]])
+    assert output[0] == pytest.approx([2, 4, 10, 20])
+    assert len(weights) == 2
+    assert weights[0][0] == pytest.approx([1.0, 0.0])
+    assert weights[1][0] == pytest.approx([1.0, 0.0])
 
 
 def test_causal_mask_supports_equal_and_cross_attention_lengths():
@@ -48,6 +59,10 @@ def test_attention_validates_dimensions_and_mask():
         scaled_dot_product_attention([[1, 0]], [[1, 0]], [[1, 0]], mask=[[True, False]])
     with pytest.raises(TypeError):
         scaled_dot_product_attention([[1, 0]], [[1, 0]], [[1, 0]], mask=[[1]])
+    with pytest.raises(ValueError):
+        multi_head_attention([[1, 0, 0]], [[1, 0, 0]], [[1, 0, 0]], heads=2)
+    with pytest.raises(ValueError):
+        multi_head_attention([[1, 0]], [[1, 0]], [[1, 0]], heads=0)
 
 
 def test_causal_mask_validates_lengths_and_scale():

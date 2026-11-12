@@ -104,6 +104,16 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Multi-head attention
+
+`multi_head_attention` splits query/key/value feature dimensions across independent heads, applies the existing stable attention routine, and concatenates each head's output:
+
+```python
+from deeplearn_utils import multi_head_attention
+
+output, weights = multi_head_attention(queries, keys, values, heads=4, mask=mask)
+```
+
 ## Gradient centralization
 
 `centralize_gradients` subtracts the mean from each gradient vector without mutating the input, providing a lightweight optimization-stability step before clipping or applying an optimizer:

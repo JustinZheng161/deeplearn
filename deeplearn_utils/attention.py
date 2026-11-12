@@ -78,7 +78,50 @@ def scaled_dot_product_attention(
     return outputs, weights
 
 
-def causal_attention_mask(query_length: int, key_length: int | None = None) -> list[list[bool]]:
+def multi_head_attention(
+    queries: Sequence[Sequence[float]],
+    keys: Sequence[Sequence[float]],
+    values: Sequence[Sequence[float]],
+    *,
+    heads: int = 1,
+    mask: Sequence[Sequence[bool]] | None = None,
+) -> tuple[list[list[float]], list[list[list[float]]]]:
+    """Return concatenated outputs and attention weights for multiple heads.
+
+    Feature dimensions are split evenly across heads; each head attends in its
+    subspace, and the per-head outputs are concatenated in the original order.
+    """
+    query_rows = _matrix(queries, "queries")
+    key_rows = _matrix(keys, "keys")
+    value_rows = _matrix(values, "values")
+    if isinstance(heads, bool) or not isinstance(heads, int) or heads < 1:
+        raise ValueError("heads must be a positive integer")
+    query_width = len(query_rows[0])
+    if len(key_rows[0]) != query_width:
+        raise ValueError("queries and keys must have the same feature dimension")
+    if len(value_rows[0]) % heads or query_width % heads:
+        raise ValueError("query and value dimensions must be divisible by heads")
+    query_head_width = query_width // heads
+    value_head_width = len(value_rows[0]) // heads
+    outputs = [[] for _ in query_rows]
+    weights = []
+    for head in range(heads):
+        query_start = head * query_head_width
+        value_start = head * value_head_width
+        head_queries = [row[query_start : query_start + query_head_width] for row in query_rows]
+        head_keys = [row[query_start : query_start + query_head_width] for row in key_rows]
+        head_values = [row[value_start : value_start + value_head_width] for row in value_rows]
+        head_output, head_weights = scaled_dot_product_attention(
+            head_queries, head_keys, head_values, mask=mask
+        )
+        weights.append(head_weights)
+        for index, row in enumerate(head_output):
+            outputs[index].extend(row)
+    return outputs, weights
+
+
+def causal_attention_mask(
+query_length: int, key_length: int | None = None) -> list[list[bool]]:
     """Return a left-to-right causal mask for autoregressive attention."""
     if isinstance(query_length, bool) or not isinstance(query_length, int) or query_length < 1:
         raise ValueError("query_length must be a positive integer")
@@ -98,4 +141,4 @@ def attention_pool(
     return output[0]
 
 
-__all__ = ["attention_pool", "causal_attention_mask", "scaled_dot_product_attention"]
+__all__ = ["attention_pool", "causal_attention_mask", "multi_head_attention", "scaled_dot_product_attention"]
