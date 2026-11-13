@@ -56,6 +56,7 @@ from .metric_learning import batch_hard_triplet_loss, contrastive_loss, cosine_e
 from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_split
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
 from .optimizers import AdaGrad, Adam, SGD
+from .lookahead import Lookahead
 from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
 from .attention import attention_pool, causal_attention_mask, multi_head_attention, scaled_dot_product_attention
 from .activations import gelu, leaky_relu, leaky_relu_derivative, mish, mish_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus
@@ -230,6 +231,7 @@ __all__ = [
     "AdaGrad",
     "Adam",
     "SGD",
+    "Lookahead",
     "RunningBatchNorm",
     "batch_norm",
     "layer_norm",

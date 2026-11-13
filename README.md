@@ -604,6 +604,17 @@ optimizer = Adam(learning_rate=1e-3, weight_decay=1e-4)
 parameters = optimizer.step(parameters, gradients)
 ```
 
+`Lookahead` wraps any compatible optimizer and periodically interpolates fast
+weights toward a slower copy, which can reduce update variance without
+changing the wrapped optimizer:
+
+```python
+from deeplearn_utils import Adam, Lookahead
+
+optimizer = Lookahead(Adam(learning_rate=1e-3), alpha=0.5, sync_period=5)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Development
 
 ## Normalization
