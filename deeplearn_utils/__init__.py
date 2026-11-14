@@ -55,7 +55,7 @@ from .uncertainty import UncertaintySummary, ensemble_mean, entropy, mutual_info
 from .metric_learning import batch_hard_triplet_loss, contrastive_loss, cosine_embedding_loss, pairwise_distance_matrix, triplet_margin_loss
 from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_split
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
-from .optimizers import AdaGrad, Adam, SGD
+from .optimizers import AdaGrad, Adam, Lion, SGD
 from .lookahead import Lookahead
 from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
 from .attention import attention_pool, causal_attention_mask, multi_head_attention, scaled_dot_product_attention
@@ -230,6 +230,7 @@ __all__ = [
     "weight_decay_update",
     "AdaGrad",
     "Adam",
+    "Lion",
     "SGD",
     "Lookahead",
     "RunningBatchNorm",

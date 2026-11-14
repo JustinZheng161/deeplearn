@@ -104,6 +104,17 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## Lion optimizer
+
+`Lion` uses sign-based momentum updates with decoupled weight decay, providing a compact optimizer option for memory-conscious training:
+
+```python
+from deeplearn_utils import Lion
+
+optimizer = Lion(learning_rate=1e-4, weight_decay=1e-2)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Multi-head attention
 
 `multi_head_attention` splits query/key/value feature dimensions across independent heads, applies the existing stable attention routine, and concatenates each head's output:

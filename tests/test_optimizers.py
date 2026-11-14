@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import AdaGrad, Adam, SGD
+from deeplearn_utils import AdaGrad, Adam, Lion, SGD
 
 
 def test_sgd_without_momentum_matches_gradient_descent():
@@ -32,6 +32,22 @@ def test_adam_updates_and_tracks_bias_correction_state():
     assert second[0] < first[0]
     assert optimizer.step_count == 2
     assert len(optimizer.first_moment) == 2
+
+
+def test_lion_uses_sign_updates_and_tracks_momentum():
+    optimizer = Lion(learning_rate=0.1, beta1=0.5, beta2=0.9)
+    first = optimizer.step([1.0, -1.0], [2.0, -2.0])
+    second = optimizer.step(first, [2.0, -2.0])
+    assert first == pytest.approx([0.9, -0.9])
+    assert second == pytest.approx([0.8, -0.8])
+    assert optimizer.momentum == pytest.approx([0.38, -0.38])
+
+
+def test_lion_decoupled_decay_and_reset():
+    optimizer = Lion(learning_rate=0.1, weight_decay=0.2)
+    assert optimizer.step([1.0], [0.0])[0] == pytest.approx(0.98)
+    optimizer.reset()
+    assert optimizer.momentum == []
 
 
 def test_adam_reset_clears_moments():
@@ -74,6 +90,10 @@ def test_optimizers_validate_hyperparameters():
         Adam(beta1=1)
     with pytest.raises(ValueError):
         Adam(epsilon=0)
+    with pytest.raises(ValueError):
+        Lion(beta2=1)
+    with pytest.raises(ValueError):
+        Lion(weight_decay=-1)
 
 
 def test_optimizers_reject_invalid_values():

@@ -126,6 +126,50 @@ class Adam:
 
 
 @dataclass
+class Lion:
+    """Lion optimizer using sign-based momentum updates and decoupled decay."""
+
+    learning_rate: float = 1e-4
+    beta1: float = 0.9
+    beta2: float = 0.99
+    weight_decay: float = 0.0
+    momentum: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        for name, value in (("beta1", self.beta1), ("beta2", self.beta2)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
+                raise ValueError(f"{name} must be between zero and one")
+        if isinstance(self.weight_decay, bool) or not isinstance(self.weight_decay, (int, float)):
+            raise TypeError("weight_decay must be a number")
+        if not math.isfinite(self.weight_decay) or self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative and finite")
+
+    def step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return parameters after one Lion sign-momentum update."""
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        if self.momentum and len(self.momentum) != len(values):
+            raise ValueError("parameter dimension changed after optimizer initialization")
+        if not self.momentum:
+            self.momentum = [0.0] * len(values)
+        mixed = [self.beta1 * old + (1 - self.beta1) * gradient for old, gradient in zip(self.momentum, updates)]
+        result = [
+            value * (1 - self.learning_rate * self.weight_decay)
+            - self.learning_rate * (1.0 if direction > 0 else -1.0 if direction < 0 else 0.0)
+            for value, direction in zip(values, mixed)
+        ]
+        self.momentum = [self.beta2 * old + (1 - self.beta2) * gradient for old, gradient in zip(self.momentum, updates)]
+        return result
+
+    def reset(self) -> None:
+        """Clear the running sign-momentum state."""
+        self.momentum.clear()
+
+
+@dataclass
 class AdaGrad:
     """AdaGrad with optional L2 weight decay for sparse or noisy gradients."""
 
@@ -225,4 +269,4 @@ class RMSprop:
         self.gradient_average.clear()
 
 
-__all__ = ["AdaGrad", "Adam", "RMSprop", "SGD"]
+__all__ = ["AdaGrad", "Adam", "Lion", "RMSprop", "SGD"]
