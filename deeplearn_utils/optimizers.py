@@ -170,6 +170,64 @@ class Lion:
 
 
 @dataclass
+class RAdam:
+    """Rectified Adam with variance-aware early-training updates."""
+
+    learning_rate: float = 1e-3
+    beta1: float = 0.9
+    beta2: float = 0.999
+    epsilon: float = 1e-8
+    weight_decay: float = 0.0
+    first_moment: list[float] = field(default_factory=list)
+    second_moment: list[float] = field(default_factory=list)
+    step_count: int = 0
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        for name, value in (("beta1", self.beta1), ("beta2", self.beta2)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
+                raise ValueError(f"{name} must be between zero and one")
+        _positive(self.epsilon, "epsilon")
+        if isinstance(self.weight_decay, bool) or not isinstance(self.weight_decay, (int, float)):
+            raise TypeError("weight_decay must be a number")
+        if not math.isfinite(self.weight_decay) or self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative and finite")
+
+    def step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return parameters after one variance-rectified Adam update."""
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        if self.first_moment and len(self.first_moment) != len(values):
+            raise ValueError("parameter dimension changed after optimizer initialization")
+        if not self.first_moment:
+            self.first_moment = [0.0] * len(values)
+            self.second_moment = [0.0] * len(values)
+        self.step_count += 1
+        self.first_moment = [self.beta1 * old + (1 - self.beta1) * gradient for old, gradient in zip(self.first_moment, updates)]
+        self.second_moment = [self.beta2 * old + (1 - self.beta2) * gradient * gradient for old, gradient in zip(self.second_moment, updates)]
+        correction1 = 1 - self.beta1**self.step_count
+        correction2 = 1 - self.beta2**self.step_count
+        rho_inf = 2 / (1 - self.beta2) - 1
+        rho = rho_inf - 2 * self.step_count * self.beta2**self.step_count / correction2
+        if rho > 4:
+            rectification = math.sqrt((rho - 4) * (rho - 2) * rho_inf / ((rho_inf - 4) * rho * (rho_inf - 2)))
+            step_size = self.learning_rate * rectification * math.sqrt(correction2) / correction1
+            directions = [first / math.sqrt(second) for first, second in zip(self.first_moment, [value / correction2 for value in self.second_moment])]
+        else:
+            step_size = self.learning_rate / correction1
+            directions = [first for first in self.first_moment]
+        return [value * (1 - self.learning_rate * self.weight_decay) - step_size * direction for value, direction in zip(values, directions)]
+
+    def reset(self) -> None:
+        """Reset moments and step counter."""
+        self.first_moment.clear()
+        self.second_moment.clear()
+        self.step_count = 0
+
+
+@dataclass
 class AdaGrad:
     """AdaGrad with optional L2 weight decay for sparse or noisy gradients."""
 
@@ -269,4 +327,4 @@ class RMSprop:
         self.gradient_average.clear()
 
 
-__all__ = ["AdaGrad", "Adam", "Lion", "RMSprop", "SGD"]
+__all__ = ["AdaGrad", "Adam", "Lion", "RAdam", "RMSprop", "SGD"]

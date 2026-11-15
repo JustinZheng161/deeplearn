@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import AdaGrad, Adam, Lion, SGD
+from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, SGD
 
 
 def test_sgd_without_momentum_matches_gradient_descent():
@@ -50,6 +50,27 @@ def test_lion_decoupled_decay_and_reset():
     assert optimizer.momentum == []
 
 
+def test_radam_rectifies_late_updates_and_tracks_state():
+    optimizer = RAdam(learning_rate=0.1, beta1=0.9, beta2=0.9)
+    first = optimizer.step([1.0], [1.0])
+    assert first[0] == pytest.approx(0.9)
+    for _ in range(10):
+        first = optimizer.step(first, [1.0])
+    assert first[0] < 0.9
+    assert optimizer.step_count == 11
+    assert optimizer.first_moment and optimizer.second_moment
+
+
+def test_radam_supports_decoupled_decay_and_reset():
+    optimizer = RAdam(learning_rate=0.1, beta2=0.9, weight_decay=0.2)
+    result = optimizer.step([1.0], [0.0])
+    assert result[0] == pytest.approx(0.98)
+    optimizer.reset()
+    assert optimizer.step_count == 0
+    assert optimizer.first_moment == []
+    assert optimizer.second_moment == []
+
+
 def test_adam_reset_clears_moments():
     optimizer = Adam()
     optimizer.step([1.0], [1.0])
@@ -94,6 +115,10 @@ def test_optimizers_validate_hyperparameters():
         Lion(beta2=1)
     with pytest.raises(ValueError):
         Lion(weight_decay=-1)
+    with pytest.raises(ValueError):
+        RAdam(beta2=1)
+    with pytest.raises(ValueError):
+        RAdam(epsilon=0)
 
 
 def test_optimizers_reject_invalid_values():

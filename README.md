@@ -104,6 +104,17 @@ from deeplearn_utils import brier_score
 score = brier_score(target_distribution, predicted_probabilities)
 ```
 
+## RAdam optimizer
+
+`RAdam` rectifies the adaptive variance estimate during early updates, reducing the need for a warmup workaround while retaining Adam-style momentum:
+
+```python
+from deeplearn_utils import RAdam
+
+optimizer = RAdam(learning_rate=1e-3)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Lion optimizer
 
 `Lion` uses sign-based momentum updates with decoupled weight decay, providing a compact optimizer option for memory-conscious training:
