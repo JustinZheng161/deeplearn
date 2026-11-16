@@ -1,6 +1,8 @@
+import copy
+
 import pytest
 
-from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, SGD
+from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, RMSprop, SGD
 
 
 def test_sgd_without_momentum_matches_gradient_descent():
@@ -165,6 +167,50 @@ def test_rmsprop_reset_clears_running_statistics():
     assert optimizer.square_average == []
     assert optimizer.momentum_buffer == []
     assert optimizer.gradient_average == []
+
+
+@pytest.mark.parametrize(
+    "factory",
+    [
+        lambda: SGD(learning_rate=0.1, momentum=0.8),
+        lambda: Adam(learning_rate=0.1),
+        lambda: Lion(learning_rate=0.1),
+        lambda: RAdam(learning_rate=0.1),
+        lambda: AdaGrad(learning_rate=0.1),
+        lambda: RMSprop(learning_rate=0.1, centered=True, momentum=0.2),
+    ],
+)
+def test_optimizer_state_dict_round_trips_for_continuation(factory):
+    original = factory()
+    parameters = original.step([1.0, -1.0], [0.5, -0.5])
+    checkpoint = original.state_dict()
+    restored = factory()
+    restored.load_state_dict(checkpoint)
+    checkpoint["step_count"] = 999 if "step_count" in checkpoint else checkpoint.get("step_count")
+    assert restored.state_dict() != checkpoint
+    assert restored.step(parameters, [0.25, -0.25]) == pytest.approx(
+        original.step(parameters, [0.25, -0.25])
+    )
+
+
+def test_optimizer_state_dict_is_independent_and_rejects_bad_keys():
+    optimizer = Adam()
+    optimizer.step([1.0], [1.0])
+    state = optimizer.state_dict()
+    copied = copy.deepcopy(state)
+    copied["first_moment"][0] = 123.0
+    assert optimizer.first_moment[0] != 123.0
+    with pytest.raises(ValueError, match="state keys"):
+        optimizer.load_state_dict({"unexpected": 1})
+
+
+def test_invalid_optimizer_state_is_rejected_without_mutating_configuration():
+    optimizer = SGD(learning_rate=0.2)
+    state = optimizer.state_dict()
+    state["learning_rate"] = 0
+    with pytest.raises(ValueError):
+        optimizer.load_state_dict(state)
+    assert optimizer.learning_rate == pytest.approx(0.2)
 
 
 @pytest.mark.parametrize("kwargs", [{"alpha": 1}, {"momentum": -1}, {"epsilon": 0}, {"centered": 1}])

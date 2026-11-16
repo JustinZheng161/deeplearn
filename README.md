@@ -637,6 +637,15 @@ optimizer = Lookahead(Adam(learning_rate=1e-3), alpha=0.5, sync_period=5)
 parameters = optimizer.step(parameters, gradients)
 ```
 
+All built-in optimizers expose `state_dict()` and `load_state_dict()` for
+checkpointing momentum, moments, and hyperparameters during interrupted
+experiments:
+
+```python
+checkpoint = optimizer.state_dict()
+optimizer.load_state_dict(checkpoint)
+```
+
 ## Development
 
 ## Normalization

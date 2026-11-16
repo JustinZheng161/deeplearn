@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from copy import deepcopy
+from dataclasses import dataclass, field, fields
 from collections.abc import Sequence
 
 
@@ -28,8 +29,41 @@ def _positive(value: float, name: str) -> None:
         raise ValueError(f"{name} must be positive and finite")
 
 
+class OptimizerStateMixin:
+    """Provide checkpoint-friendly serialization for dataclass optimizers."""
+
+    def state_dict(self) -> dict[str, object]:
+        """Return an independent copy of hyperparameters and optimizer state."""
+        return {item.name: deepcopy(getattr(self, item.name)) for item in fields(self)}
+
+    def load_state_dict(self, state: dict[str, object]) -> None:
+        """Restore a state produced by :meth:`state_dict`.
+
+        Loading validates the optimizer configuration before mutating it and
+        deep-copies values so callers can safely reuse or discard checkpoints.
+        """
+        if not isinstance(state, dict):
+            raise TypeError("state must be a dictionary")
+        expected = {item.name for item in fields(self)}
+        if set(state) != expected:
+            missing = sorted(expected - set(state))
+            extra = sorted(set(state) - expected)
+            details = f"missing={missing}" if missing else f"unexpected={extra}"
+            raise ValueError(f"state keys do not match optimizer fields ({details})")
+        original = self.state_dict()
+        candidate = {name: deepcopy(value) for name, value in state.items()}
+        for name, value in candidate.items():
+            setattr(self, name, value)
+        try:
+            self.__post_init__()
+        except (TypeError, ValueError):
+            for name, value in original.items():
+                setattr(self, name, value)
+            raise
+
+
 @dataclass
-class SGD:
+class SGD(OptimizerStateMixin):
     """Stateful SGD with optional momentum, dampening, and Nesterov updates."""
 
     learning_rate: float = 1e-2
@@ -73,7 +107,7 @@ class SGD:
 
 
 @dataclass
-class Adam:
+class Adam(OptimizerStateMixin):
     """Adam optimizer with optional decoupled weight decay."""
 
     learning_rate: float = 1e-3
@@ -126,7 +160,7 @@ class Adam:
 
 
 @dataclass
-class Lion:
+class Lion(OptimizerStateMixin):
     """Lion optimizer using sign-based momentum updates and decoupled decay."""
 
     learning_rate: float = 1e-4
@@ -170,7 +204,7 @@ class Lion:
 
 
 @dataclass
-class RAdam:
+class RAdam(OptimizerStateMixin):
     """Rectified Adam with variance-aware early-training updates."""
 
     learning_rate: float = 1e-3
@@ -228,7 +262,7 @@ class RAdam:
 
 
 @dataclass
-class AdaGrad:
+class AdaGrad(OptimizerStateMixin):
     """AdaGrad with optional L2 weight decay for sparse or noisy gradients."""
 
     learning_rate: float = 1e-2
@@ -268,7 +302,7 @@ class AdaGrad:
 
 
 @dataclass
-class RMSprop:
+class RMSprop(OptimizerStateMixin):
     """RMSprop with optional momentum and centered variance estimates."""
 
     learning_rate: float = 1e-2
