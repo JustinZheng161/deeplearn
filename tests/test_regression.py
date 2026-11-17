@@ -1,6 +1,8 @@
+import math
+
 import pytest
 
-from deeplearn_utils import mean_absolute_error, mean_squared_error, r2_score
+from deeplearn_utils import log_cosh_loss, log_cosh_loss_batch, mean_absolute_error, mean_squared_error, r2_score
 
 
 def test_regression_metrics_match_reference_values():
@@ -10,6 +12,19 @@ def test_regression_metrics_match_reference_values():
     assert mean_absolute_error(targets, predictions) == pytest.approx(5 / 6)
     assert mean_squared_error(targets, predictions) == pytest.approx(0.75)
     assert r2_score(targets, predictions) == pytest.approx(29 / 56)
+
+
+def test_log_cosh_loss_is_smooth_and_stable_for_large_errors():
+    assert log_cosh_loss(1.0, 1.0) == pytest.approx(0.0)
+    assert log_cosh_loss(0.0, 1.0) == pytest.approx(math.log(math.cosh(1.0)))
+    assert math.isfinite(log_cosh_loss(0.0, 1000.0))
+    assert log_cosh_loss(0.0, 2.0) < mean_squared_error([0.0], [2.0])
+
+
+def test_log_cosh_loss_batch_returns_mean():
+    assert log_cosh_loss_batch([0.0, 0.0], [1.0, 2.0]) == pytest.approx(
+        (log_cosh_loss(0.0, 1.0) + log_cosh_loss(0.0, 2.0)) / 2
+    )
 
 
 def test_r2_handles_constant_targets_without_nan():
@@ -30,6 +45,15 @@ def test_regression_metrics_reject_non_finite_values():
         mean_squared_error([1.0], [float("nan")])
     with pytest.raises(TypeError, match="only numbers"):
         mean_absolute_error([1.0], ["1"])
+
+
+def test_log_cosh_loss_validates_scalar_inputs():
+    with pytest.raises(TypeError):
+        log_cosh_loss(1.0, "1")
+    with pytest.raises(ValueError):
+        log_cosh_loss(float("nan"), 1.0)
+    with pytest.raises(ValueError):
+        log_cosh_loss_batch([], [])
 
 
 def test_huber_loss_uses_quadratic_and_linear_regions():

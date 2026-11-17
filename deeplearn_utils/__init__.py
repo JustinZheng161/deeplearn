@@ -12,6 +12,8 @@ from .schedules import cosine_restart, inverse_sqrt_decay, one_cycle_lr, polynom
 from .regression import (
     huber_loss,
     huber_loss_batch,
+    log_cosh_loss,
+    log_cosh_loss_batch,
     mean_absolute_error,
     mean_squared_error,
     r2_score,
@@ -136,6 +138,8 @@ __all__ = [
     "inverse_sqrt_decay",
     "polynomial_decay",
     "huber_loss",
+    "log_cosh_loss",
+    "log_cosh_loss_batch",
     "huber_loss_batch",
     "mean_absolute_error",
     "mean_squared_error",

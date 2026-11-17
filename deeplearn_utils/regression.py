@@ -42,6 +42,26 @@ def mean_squared_error(targets: Sequence[float], predictions: Sequence[float]) -
     return sum((target - prediction) ** 2 for target, prediction in zip(actual, predicted)) / len(actual)
 
 
+def log_cosh_loss(actual: float, predicted: float) -> float:
+    """Return the stable log-cosh loss for one regression prediction."""
+    if isinstance(actual, bool) or not isinstance(actual, (int, float)):
+        raise TypeError("actual must be a number")
+    if isinstance(predicted, bool) or not isinstance(predicted, (int, float)):
+        raise TypeError("predicted must be a number")
+    if not math.isfinite(actual) or not math.isfinite(predicted):
+        raise ValueError("actual and predicted must be finite")
+    error = abs(float(predicted) - float(actual))
+    if error > 20:
+        return error - math.log(2.0)
+    return math.log(math.cosh(error))
+
+
+def log_cosh_loss_batch(targets: Sequence[float], predictions: Sequence[float]) -> float:
+    """Return the mean log-cosh loss across a regression batch."""
+    actual, predicted = _pair(targets, predictions)
+    return sum(log_cosh_loss(left, right) for left, right in zip(actual, predicted)) / len(actual)
+
+
 def r2_score(targets: Sequence[float], predictions: Sequence[float]) -> float:
     """Return the coefficient of determination.
 
@@ -95,4 +115,4 @@ def huber_loss_batch(
     return sum(losses) / len(losses)
 
 
-__all__ = ["huber_loss", "huber_loss_batch", "mean_absolute_error", "mean_squared_error", "r2_score"]
+__all__ = ["huber_loss", "huber_loss_batch", "log_cosh_loss", "log_cosh_loss_batch", "mean_absolute_error", "mean_squared_error", "r2_score"]
