@@ -6,12 +6,15 @@ from deeplearn_utils import (
     binary_cross_entropy,
     categorical_entropy,
     categorical_cross_entropy_with_logits,
+    categorical_cross_entropy_with_logits_batch,
     kl_divergence,
     log_softmax,
     sigmoid,
     softmax,
     sparsemax,
     softmax_batch,
+    sparse_cross_entropy_with_logits,
+    sparse_cross_entropy_with_logits_batch,
 )
 
 
@@ -130,3 +133,34 @@ def test_entropy_validates_base():
 def test_binary_cross_entropy_validates_inputs(target, probability, error):
     with pytest.raises(error):
         binary_cross_entropy(target, probability)
+
+
+def test_logits_cross_entropy_batch_averages_soft_targets():
+    targets = [[1.0, 0.0], [0.0, 1.0]]
+    logits = [[4.0, 0.0], [0.0, 4.0]]
+    expected = categorical_cross_entropy_with_logits(targets[0], logits[0])
+    assert categorical_cross_entropy_with_logits_batch(targets, logits) == pytest.approx(expected)
+
+
+def test_sparse_logits_cross_entropy_matches_probability_form():
+    logits = [1.0, 2.0, 3.0]
+    assert sparse_cross_entropy_with_logits(logits, 2) == pytest.approx(
+        -math.log(softmax(logits)[2])
+    )
+    assert sparse_cross_entropy_with_logits_batch([logits, logits], [2, 2]) == pytest.approx(
+        sparse_cross_entropy_with_logits(logits, 2)
+    )
+
+
+def test_sparse_logits_loss_remains_stable_for_extreme_values():
+    assert sparse_cross_entropy_with_logits([1000.0, 0.0], 0) == pytest.approx(0.0)
+    assert sparse_cross_entropy_with_logits([-1000.0, 0.0], 0) == pytest.approx(1000.0)
+
+
+def test_batch_logits_losses_validate_alignment_and_targets():
+    with pytest.raises(ValueError, match="batch size"):
+        categorical_cross_entropy_with_logits_batch([[1.0, 0.0]], [[0.0, 1.0], [1.0, 0.0]])
+    with pytest.raises(ValueError, match="valid class index"):
+        sparse_cross_entropy_with_logits([0.0, 1.0], 2)
+    with pytest.raises(ValueError, match="batch size"):
+        sparse_cross_entropy_with_logits_batch([[0.0, 1.0]], [0, 1])

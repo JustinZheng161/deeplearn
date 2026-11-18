@@ -206,6 +206,17 @@ from deeplearn_utils import categorical_cross_entropy_with_logits
 loss = categorical_cross_entropy_with_logits(target_distribution, logits)
 ```
 
+For mini-batch training, `categorical_cross_entropy_with_logits_batch` averages
+stable soft-target losses without materializing probabilities. When targets
+are integer class IDs, use `sparse_cross_entropy_with_logits_batch` to avoid
+one-hot allocation:
+
+```python
+from deeplearn_utils import sparse_cross_entropy_with_logits_batch
+
+loss = sparse_cross_entropy_with_logits_batch(logit_rows, class_ids)
+```
+
 ## Kullback–Leibler divergence
 
 `kl_divergence` measures how far a predicted probability distribution is from a soft target distribution, making it useful for knowledge distillation and distribution matching:

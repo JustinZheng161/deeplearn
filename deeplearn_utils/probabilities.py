@@ -213,6 +213,46 @@ def categorical_cross_entropy_with_logits(
     return -sum(target * log_probability for target, log_probability in zip(targets, log_probabilities) if target > 0)
 
 
+def categorical_cross_entropy_with_logits_batch(
+    targets: Sequence[Sequence[float]], logits: Sequence[Sequence[float]]
+) -> float:
+    """Return mean soft-target cross-entropy for a batch of logits."""
+    if isinstance(targets, (str, bytes)) or isinstance(logits, (str, bytes)):
+        raise TypeError("targets and logits must be sequences of rows")
+    target_rows, logit_rows = list(targets), list(logits)
+    if not target_rows or not logit_rows:
+        raise ValueError("targets and logits must not be empty")
+    if len(target_rows) != len(logit_rows):
+        raise ValueError("targets and logits must have the same batch size")
+    losses = [categorical_cross_entropy_with_logits(target, row)
+              for target, row in zip(target_rows, logit_rows)]
+    return sum(losses) / len(losses)
+
+
+def sparse_cross_entropy_with_logits(logits: Sequence[float], target: int) -> float:
+    """Return stable cross-entropy for one integer target and raw logits."""
+    values = _values(logits, "logits")
+    if isinstance(target, bool) or not isinstance(target, int) or not 0 <= target < len(values):
+        raise ValueError("target must be a valid class index")
+    maximum = max(values)
+    return maximum + math.log(sum(math.exp(value - maximum) for value in values)) - values[target]
+
+
+def sparse_cross_entropy_with_logits_batch(
+    logits: Sequence[Sequence[float]], targets: Sequence[int]
+) -> float:
+    """Return mean sparse-label cross-entropy for a batch of logits."""
+    if isinstance(logits, (str, bytes)) or isinstance(targets, (str, bytes)):
+        raise TypeError("logits and targets must be sequences")
+    rows, labels = list(logits), list(targets)
+    if not rows or not labels:
+        raise ValueError("logits and targets must not be empty")
+    if len(rows) != len(labels):
+        raise ValueError("logits and targets must have the same batch size")
+    losses = [sparse_cross_entropy_with_logits(row, target) for row, target in zip(rows, labels)]
+    return sum(losses) / len(losses)
+
+
 def categorical_cross_entropy(
     target: Sequence[float],
     probabilities: Sequence[float],
@@ -271,6 +311,7 @@ __all__ = [
     "brier_score",
     "brier_score_batch",
     "categorical_cross_entropy",
+    "categorical_cross_entropy_with_logits_batch",
     "categorical_cross_entropy_with_logits",
     "categorical_cross_entropy_batch",
     "categorical_entropy",
@@ -280,4 +321,6 @@ __all__ = [
     "softmax",
     "sparsemax",
     "softmax_batch",
+    "sparse_cross_entropy_with_logits",
+    "sparse_cross_entropy_with_logits_batch",
 ]
