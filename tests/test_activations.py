@@ -13,6 +13,7 @@ from deeplearn_utils import (
     silu,
     silu_derivative,
     softplus,
+    softplus_inverse,
     vector_sigmoid,
 )
 
@@ -62,6 +63,15 @@ def test_mish_derivative_matches_finite_difference():
         assert mish_derivative([value])[0] == pytest.approx(numerical, abs=1e-5)
 
 
+def test_softplus_inverse_round_trips_positive_values():
+    values = [0.01, 0.5, 2.0, 1000.0]
+    recovered = softplus_inverse(values)
+    assert softplus(recovered) == pytest.approx(values, rel=1e-10, abs=1e-10)
+    beta = 2.0
+    values = [0.25, 3.0]
+    assert softplus(softplus_inverse(values, beta=beta), beta=beta) == pytest.approx(values)
+
+
 def test_softplus_is_stable_and_supports_beta():
     values = softplus([-1000, 0, 1000])
     assert values[0] == pytest.approx(0.0)
@@ -74,6 +84,17 @@ def test_softplus_is_stable_and_supports_beta():
 def test_activations_validate_input(values):
     with pytest.raises((TypeError, ValueError)):
         relu(values)
+
+
+def test_softplus_inverse_validates_positive_inputs_and_parameters():
+    with pytest.raises(ValueError):
+        softplus_inverse([0.0])
+    with pytest.raises(ValueError):
+        softplus_inverse([-1.0])
+    with pytest.raises(ValueError):
+        softplus_inverse([1.0], beta=0)
+    with pytest.raises(ValueError):
+        softplus_inverse([1.0], threshold=float("nan"))
 
 
 def test_activation_parameters_are_validated():

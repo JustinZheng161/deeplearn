@@ -61,7 +61,7 @@ from .optimizers import AdaGrad, Adam, Lion, RAdam, SGD
 from .lookahead import Lookahead
 from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
 from .attention import attention_pool, causal_attention_mask, multi_head_attention, scaled_dot_product_attention
-from .activations import gelu, leaky_relu, leaky_relu_derivative, mish, mish_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus
+from .activations import gelu, leaky_relu, leaky_relu_derivative, mish, mish_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus, softplus_inverse
 from .pooling import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_pool, sum_pool, top_k_pool
 from .dropout import dropout, dropout_mask, feature_dropout, stochastic_depth
 from .sampling import categorical_sample, nucleus_filter, sample_logits, top_k_filter, top_p_sample
@@ -263,6 +263,7 @@ __all__ = [
     "silu",
     "silu_derivative",
     "softplus",
+    "softplus_inverse",
     "vector_sigmoid",
     "logsumexp_pool",
     "masked_softmax",

@@ -119,9 +119,31 @@ def softplus(values: Sequence[float], *, beta: float = 1.0, threshold: float = 2
     return result
 
 
+def softplus_inverse(values: Sequence[float], *, beta: float = 1.0, threshold: float = 20.0) -> list[float]:
+    """Return unconstrained values whose softplus outputs match ``values``.
+
+    The inverse is useful when positive parameters are stored in an unconstrained
+    form. Large scaled values use an asymptotic branch to avoid ``expm1`` overflow.
+    """
+    if isinstance(beta, bool) or not isinstance(beta, (int, float)) or not math.isfinite(beta) or beta <= 0:
+        raise ValueError("beta must be positive and finite")
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not math.isfinite(threshold):
+        raise ValueError("threshold must be finite")
+    result = []
+    for value in _values(values):
+        if value <= 0:
+            raise ValueError("softplus inputs must be positive")
+        scaled = float(beta) * value
+        if scaled > threshold:
+            result.append(value)
+        else:
+            result.append(math.log(math.expm1(scaled)) / float(beta))
+    return result
+
+
 def _validate_slope(value: float) -> None:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
         raise ValueError("negative_slope must be finite and non-negative")
 
 
-__all__ = ["gelu", "leaky_relu", "leaky_relu_derivative", "mish", "mish_derivative", "relu", "relu_derivative", "sigmoid", "silu", "silu_derivative", "softplus"]
+__all__ = ["gelu", "leaky_relu", "leaky_relu_derivative", "mish", "mish_derivative", "relu", "relu_derivative", "sigmoid", "silu", "silu_derivative", "softplus", "softplus_inverse"]
