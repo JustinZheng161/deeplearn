@@ -237,6 +237,18 @@ from deeplearn_utils import categorical_cross_entropy
 loss = categorical_cross_entropy(soft_target, predicted_probabilities)
 ```
 
+## Quantile regression
+
+`quantile_loss` implements pinball loss for probabilistic regression. It
+penalizes under- and over-predictions asymmetrically, while
+`quantile_loss_batch` supports both one quantile and multiple quantile outputs:
+
+```python
+from deeplearn_utils import quantile_loss_batch
+
+loss = quantile_loss_batch(targets, predicted_quantiles, quantile=[0.1, 0.5, 0.9])
+```
+
 ## Label smoothing
 
 `label_smoothed_targets` converts integer class labels into probability distributions for soft-target losses. It is framework-agnostic and keeps the target distribution normalized:

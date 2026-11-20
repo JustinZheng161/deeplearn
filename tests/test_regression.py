@@ -2,7 +2,15 @@ import math
 
 import pytest
 
-from deeplearn_utils import log_cosh_loss, log_cosh_loss_batch, mean_absolute_error, mean_squared_error, r2_score
+from deeplearn_utils import (
+    log_cosh_loss,
+    log_cosh_loss_batch,
+    mean_absolute_error,
+    mean_squared_error,
+    quantile_loss,
+    quantile_loss_batch,
+    r2_score,
+)
 
 
 def test_regression_metrics_match_reference_values():
@@ -68,6 +76,31 @@ def test_huber_loss_batch_returns_mean():
     from deeplearn_utils import huber_loss_batch
 
     assert huber_loss_batch([0, 3], [1, 1], delta=1.0) == pytest.approx(1.0)
+
+
+def test_quantile_loss_weights_under_and_over_predictions():
+    assert quantile_loss(4.0, 3.0, quantile=0.8) == pytest.approx(0.8)
+    assert quantile_loss(3.0, 4.0, quantile=0.8) == pytest.approx(0.2)
+    assert quantile_loss(2.0, 2.0, quantile=0.5) == 0.0
+
+
+def test_quantile_loss_batch_supports_scalar_and_multiple_quantiles():
+    assert quantile_loss_batch([1.0, 3.0], [2.0, 2.0], quantile=0.5) == pytest.approx(0.5)
+    result = quantile_loss_batch([2.0], [[1.0, 3.0]], quantile=[0.25, 0.75])
+    assert result == pytest.approx(0.25)
+
+
+@pytest.mark.parametrize("level", [0, 1, -0.1, 1.1, float("nan"), True, "0.5"])
+def test_quantile_loss_validates_quantile(level):
+    with pytest.raises((TypeError, ValueError)):
+        quantile_loss(1.0, 2.0, quantile=level)
+
+
+def test_quantile_loss_batch_validates_rows_and_quantile_count():
+    with pytest.raises(ValueError, match="same length"):
+        quantile_loss_batch([1.0], [1.0, 2.0])
+    with pytest.raises(ValueError, match="quantile count"):
+        quantile_loss_batch([1.0], [[1.0, 2.0]], quantile=[0.5])
 
 
 @pytest.mark.parametrize("delta", [0, -1, float("inf"), True, "1"])

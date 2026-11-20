@@ -115,4 +115,74 @@ def huber_loss_batch(
     return sum(losses) / len(losses)
 
 
-__all__ = ["huber_loss", "huber_loss_batch", "log_cosh_loss", "log_cosh_loss_batch", "mean_absolute_error", "mean_squared_error", "r2_score"]
+def quantile_loss(actual: float, predicted: float, *, quantile: float = 0.5) -> float:
+    """Return pinball loss for one target and predicted quantile.
+
+    Under-predictions receive weight ``quantile`` while over-predictions
+    receive weight ``1 - quantile``. At ``quantile=0.5`` this is half the
+    absolute error, which is useful for median regression.
+    """
+    for name, value in (("actual", actual), ("predicted", predicted)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"{name} must be a number")
+        if not math.isfinite(value):
+            raise ValueError(f"{name} must be finite")
+    if isinstance(quantile, bool) or not isinstance(quantile, (int, float)):
+        raise TypeError("quantile must be a number")
+    if not math.isfinite(quantile) or not 0 < quantile < 1:
+        raise ValueError("quantile must be strictly between zero and one")
+    error = float(actual) - float(predicted)
+    return float(quantile) * error if error >= 0 else (float(quantile) - 1.0) * error
+
+
+def quantile_loss_batch(
+    actual: Sequence[float],
+    predicted: Sequence[float] | Sequence[Sequence[float]],
+    *,
+    quantile: float = 0.5,
+) -> float:
+    """Return mean pinball loss for scalar or multi-quantile predictions.
+
+    A one-dimensional prediction sequence uses one shared ``quantile``. For
+    multiple quantiles, each prediction row must align with ``quantiles`` and
+    the mean is taken over all target-quantile pairs.
+    """
+    targets = _values(actual, "actual")
+    if isinstance(predicted, (str, bytes)):
+        raise TypeError("predicted must be a numeric sequence")
+    predictions = list(predicted)
+    if not predictions:
+        raise ValueError("predicted must not be empty")
+    if all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in predictions):
+        if len(targets) != len(predictions):
+            raise ValueError("actual and predicted must have the same length")
+        return sum(quantile_loss(left, right, quantile=quantile)
+                   for left, right in zip(targets, predictions)) / len(targets)
+    rows = [list(row) for row in predictions]
+    if len(rows) != len(targets) or not rows or any(not row for row in rows):
+        raise ValueError("actual and predicted rows must be non-empty and aligned")
+    width = len(rows[0])
+    if any(len(row) != width for row in rows):
+        raise ValueError("all predicted rows must have the same quantile count")
+    if isinstance(quantile, (int, float)) and not isinstance(quantile, bool):
+        quantiles = [float(quantile)] * width
+    else:
+        quantiles = list(quantile)
+    if len(quantiles) != width:
+        raise ValueError("quantile count must match predicted row width")
+    losses = [quantile_loss(target, prediction, quantile=level)
+              for target, row in zip(targets, rows) for prediction, level in zip(row, quantiles)]
+    return sum(losses) / len(losses)
+
+
+__all__ = [
+    "huber_loss",
+    "huber_loss_batch",
+    "log_cosh_loss",
+    "log_cosh_loss_batch",
+    "mean_absolute_error",
+    "mean_squared_error",
+    "quantile_loss",
+    "quantile_loss_batch",
+    "r2_score",
+]

@@ -16,6 +16,8 @@ from .regression import (
     log_cosh_loss_batch,
     mean_absolute_error,
     mean_squared_error,
+    quantile_loss,
+    quantile_loss_batch,
     r2_score,
 )
 from .targets import label_smoothed_targets
@@ -146,6 +148,8 @@ __all__ = [
     "huber_loss_batch",
     "mean_absolute_error",
     "mean_squared_error",
+    "quantile_loss",
+    "quantile_loss_batch",
     "r2_score",
     "label_smoothed_targets",
     "lengths_to_padding_mask",
