@@ -303,6 +303,23 @@ ema = ParameterEMA(decay=0.999)
 smoothed_parameters = ema.update(parameters)
 ```
 
+## Stochastic weight averaging
+
+`StochasticWeightAverage` maintains an incremental arithmetic mean of parameter snapshots. Update it after selected late-training epochs, then evaluate or checkpoint the averaged parameters to reduce sensitivity to a single noisy endpoint:
+
+```python
+from deeplearn_utils import StochasticWeightAverage
+
+swa = StochasticWeightAverage()
+for epoch in range(start_epoch, total_epochs):
+    train_one_epoch(model, data)
+    if epoch >= averaging_start:
+        averaged_parameters = swa.update(model.parameters)
+model.load_parameters(swa.value())
+```
+
+Unlike `ParameterEMA`, SWA gives every selected snapshot equal weight and exposes the number of snapshots through `count`.
+
 ## AdaGrad optimizer
 
 `AdaGrad` accumulates squared gradients and automatically reduces the step size for parameters that receive frequent updates, which can be useful for sparse features:

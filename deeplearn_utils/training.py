@@ -188,6 +188,59 @@ class ParameterEMA:
         self.shadow.clear()
 
 
+@dataclass
+class StochasticWeightAverage:
+    """Maintain a running arithmetic mean of model parameter snapshots.
+
+    Call :meth:`update` after selected training epochs and use :meth:`value` for
+    evaluation or checkpoint export. The input sequence is copied on every call,
+    so later optimizer updates cannot mutate the accumulated average.
+    """
+
+    average: list[float] = field(default_factory=list)
+    count: int = 0
+
+    @staticmethod
+    def _values(parameters: Sequence[float]) -> list[float]:
+        if isinstance(parameters, (str, bytes)):
+            raise TypeError("parameters must be a sequence of numbers")
+        try:
+            values = list(parameters)
+        except TypeError as exc:
+            raise TypeError("parameters must be a sequence of numbers") from exc
+        if not values:
+            raise ValueError("parameters must not be empty")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+            raise TypeError("parameters must contain numbers")
+        if any(not math.isfinite(float(value)) for value in values):
+            raise ValueError("parameters must contain finite numbers")
+        return [float(value) for value in values]
+
+    def update(self, parameters: Sequence[float]) -> list[float]:
+        """Include one parameter snapshot and return the updated mean."""
+        values = self._values(parameters)
+        if self.count == 0:
+            self.average = values
+        elif len(self.average) != len(values):
+            raise ValueError("parameter dimension changed during averaging")
+        else:
+            weight = 1.0 / (self.count + 1)
+            self.average = [old + (new - old) * weight for old, new in zip(self.average, values)]
+        self.count += 1
+        return self.average.copy()
+
+    def value(self) -> list[float]:
+        """Return a copy of the mean, or raise before any snapshot is added."""
+        if self.count == 0:
+            raise ValueError("cannot read an empty stochastic weight average")
+        return self.average.copy()
+
+    def reset(self) -> None:
+        """Discard all snapshots and start a new averaging window."""
+        self.average.clear()
+        self.count = 0
+
+
 class GradientAccumulator:
     """Accumulate gradients from micro-batches and return their weighted mean.
 
@@ -316,6 +369,7 @@ __all__ = [
     "GradientAccumulator",
     "EarlyStoppingState",
     "ParameterEMA",
+    "StochasticWeightAverage",
     "clip_by_global_norm",
     "RunningAverage",
     "batch_indices",

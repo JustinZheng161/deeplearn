@@ -49,6 +49,7 @@ from .training import (
     centralize_gradients,
     EarlyStoppingState,
     RunningAverage,
+    StochasticWeightAverage,
     batch_indices,
     iter_minibatches,
 )
@@ -157,6 +158,7 @@ __all__ = [
     "group_norm",
     "RMSprop",
     "ParameterEMA",
+    "StochasticWeightAverage",
     "MinMaxScaler",
     "RobustScaler",
     "StandardScaler",

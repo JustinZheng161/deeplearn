@@ -10,6 +10,35 @@ from deeplearn_utils import (
 )
 
 
+def test_stochastic_weight_average_tracks_snapshots_without_aliasing():
+    from deeplearn_utils import StochasticWeightAverage
+
+    average = StochasticWeightAverage()
+    with pytest.raises(ValueError, match="empty"):
+        average.value()
+    first = [1.0, 3.0]
+    assert average.update(first) == [1.0, 3.0]
+    first[0] = 99.0
+    assert average.update([3.0, 7.0]) == pytest.approx([2.0, 5.0])
+    assert average.value() == pytest.approx([2.0, 5.0])
+    assert average.count == 2
+
+
+def test_stochastic_weight_average_validates_snapshots_and_resets():
+    from deeplearn_utils import StochasticWeightAverage
+
+    average = StochasticWeightAverage()
+    for invalid in ([], [True], [float("nan")], "parameters"):
+        with pytest.raises((TypeError, ValueError)):
+            average.update(invalid)
+    average.update([1.0, 2.0])
+    with pytest.raises(ValueError, match="dimension"):
+        average.update([1.0])
+    average.reset()
+    assert average.count == 0
+    assert average.average == []
+
+
 def test_batch_indices_cover_items_and_keep_final_short_batch():
     batches = list(batch_indices(7, 3))
     assert batches == [[0, 1, 2], [3, 4, 5], [6]]
