@@ -2,7 +2,40 @@ import copy
 
 import pytest
 
-from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, RMSprop, SGD
+from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, RMSprop, SAM, SGD
+
+
+def test_sam_applies_gradient_perturbation_then_second_update():
+    optimizer = SAM(learning_rate=0.1, rho=0.1)
+    perturbed = optimizer.first_step([3.0, 4.0], [3.0, 4.0])
+    assert perturbed == pytest.approx([3.06, 4.08])
+    assert optimizer.second_step([3.06, 4.08], [1.0, -2.0]) == pytest.approx([2.9, 4.2])
+    assert optimizer.perturbation == []
+
+
+def test_sam_supports_adaptive_and_zero_gradient_paths():
+    optimizer = SAM(learning_rate=0.1, rho=0.2, adaptive=True)
+    assert optimizer.first_step([2.0, 3.0], [0.0, 0.0]) == [2.0, 3.0]
+    optimizer.reset()
+    assert optimizer.perturbation == []
+    with pytest.raises(RuntimeError, match="second_step"):
+        optimizer.second_step([1.0], [1.0])
+    optimizer.first_step([1.0], [1.0])
+    with pytest.raises(RuntimeError, match="first_step"):
+        optimizer.first_step([1.0], [1.0])
+
+
+def test_sam_validates_configuration_and_step_dimensions():
+    with pytest.raises(ValueError):
+        SAM(rho=0)
+    with pytest.raises(TypeError):
+        SAM(adaptive=1)
+    optimizer = SAM()
+    with pytest.raises(ValueError, match="same length"):
+        optimizer.first_step([1.0], [1.0, 2.0])
+    optimizer.first_step([1.0], [1.0])
+    with pytest.raises(ValueError, match="dimension"):
+        optimizer.second_step([1.0, 2.0], [1.0, 2.0])
 
 
 def test_sgd_without_momentum_matches_gradient_descent():

@@ -126,6 +126,19 @@ optimizer = Lion(learning_rate=1e-4, weight_decay=1e-2)
 parameters = optimizer.step(parameters, gradients)
 ```
 
+## Sharpness-Aware Minimization optimizer
+
+`SAM` performs a first update in a small gradient-aligned neighborhood, then applies the second-pass gradient at the original parameters. This two-step optimizer can reduce sensitivity to sharp minima; `adaptive=True` scales the perturbation by parameter magnitude:
+
+```python
+from deeplearn_utils import SAM
+
+optimizer = SAM(learning_rate=1e-2, rho=0.05)
+perturbed = optimizer.first_step(parameters, gradients)
+second_gradients = loss_and_gradients(perturbed)
+parameters = optimizer.second_step(perturbed, second_gradients)
+```
+
 ## Multi-head attention
 
 `multi_head_attention` splits query/key/value feature dimensions across independent heads, applies the existing stable attention routine, and concatenates each head's output:

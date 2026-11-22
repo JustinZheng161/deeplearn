@@ -204,6 +204,64 @@ class Lion(OptimizerStateMixin):
 
 
 @dataclass
+class SAM(OptimizerStateMixin):
+    """Sharpness-Aware Minimization optimizer with explicit two-step updates.
+
+    Call :meth:`first_step` with the gradients at the current parameters, run a
+    second forward/backward pass at the returned perturbed parameters, then call
+    :meth:`second_step` with the second gradients. The perturbation is cleared
+    after a successful second step.
+    """
+
+    learning_rate: float = 1e-2
+    rho: float = 0.05
+    adaptive: bool = False
+    perturbation: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        _positive(self.rho, "rho")
+        if not isinstance(self.adaptive, bool):
+            raise TypeError("adaptive must be a boolean")
+
+    def _validate_pair(self, parameters: Sequence[float], gradients: Sequence[float]) -> tuple[list[float], list[float]]:
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        return values, updates
+
+    def first_step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return perturbed parameters for SAM's second forward/backward pass."""
+        if self.perturbation:
+            raise RuntimeError("first_step called before second_step")
+        values, updates = self._validate_pair(parameters, gradients)
+        scaled = [gradient * value if self.adaptive else gradient for value, gradient in zip(values, updates)]
+        norm = math.sqrt(sum(value * value for value in scaled))
+        scale = self.rho / norm if norm > 0 else 0.0
+        self.perturbation = [scale * value for value in scaled]
+        return [value + delta for value, delta in zip(values, self.perturbation)]
+
+    def second_step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Apply the second-pass gradient at the original parameter location."""
+        values, updates = self._validate_pair(parameters, gradients)
+        if not self.perturbation:
+            raise RuntimeError("second_step requires a preceding first_step")
+        if len(self.perturbation) != len(values):
+            raise ValueError("parameter dimension changed between SAM steps")
+        result = [
+            value - delta - self.learning_rate * gradient
+            for value, delta, gradient in zip(values, self.perturbation, updates)
+        ]
+        self.perturbation.clear()
+        return result
+
+    def reset(self) -> None:
+        """Discard a pending SAM perturbation."""
+        self.perturbation.clear()
+
+
+@dataclass
 class RAdam(OptimizerStateMixin):
     """Rectified Adam with variance-aware early-training updates."""
 
@@ -361,4 +419,4 @@ class RMSprop(OptimizerStateMixin):
         self.gradient_average.clear()
 
 
-__all__ = ["AdaGrad", "Adam", "Lion", "RAdam", "RMSprop", "SGD"]
+__all__ = ["AdaGrad", "Adam", "Lion", "RAdam", "RMSprop", "SAM", "SGD"]
