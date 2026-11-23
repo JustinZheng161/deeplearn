@@ -4,6 +4,8 @@ import pytest
 
 from deeplearn_utils import (
     ensemble_mean,
+    ensemble_regression_mean,
+    ensemble_regression_variance,
     entropy,
     mutual_information,
     predictive_entropy,
@@ -65,6 +67,24 @@ def test_probability_rows_validate_shape_and_normalization(probabilities):
 def test_ensemble_mean_rejects_inconsistent_member_shapes():
     with pytest.raises(ValueError, match="same shape"):
         ensemble_mean([[[1.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]])
+
+
+def test_regression_ensemble_mean_and_variance_are_per_sample():
+    predictions = [[1.0, 3.0], [3.0, 5.0], [2.0, 4.0]]
+    assert ensemble_regression_mean(predictions) == pytest.approx([2.0, 4.0])
+    assert ensemble_regression_variance(predictions) == pytest.approx([2 / 3, 2 / 3])
+    assert ensemble_regression_variance(predictions, unbiased=True) == pytest.approx([1.0, 1.0])
+
+
+def test_regression_ensemble_uncertainty_validates_shape_and_values():
+    with pytest.raises(ValueError, match="same length"):
+        ensemble_regression_mean([[1.0], [1.0, 2.0]])
+    with pytest.raises(ValueError, match="finite"):
+        ensemble_regression_variance([[float("inf")]])
+    with pytest.raises(ValueError, match="at least two"):
+        ensemble_regression_variance([[1.0]], unbiased=True)
+    with pytest.raises(TypeError, match="boolean"):
+        ensemble_regression_variance([[1.0]], unbiased=1)
 
 
 def test_entropy_validates_base_and_inputs():

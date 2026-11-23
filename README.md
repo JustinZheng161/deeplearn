@@ -316,6 +316,20 @@ ema = ParameterEMA(decay=0.999)
 smoothed_parameters = ema.update(parameters)
 ```
 
+## Regression ensemble uncertainty
+
+`ensemble_regression_mean` and `ensemble_regression_variance` summarize
+per-sample predictions from an ensemble or repeated stochastic forward passes.
+Use `unbiased=True` when estimating sample variance from a finite set of
+members:
+
+```python
+from deeplearn_utils import ensemble_regression_mean, ensemble_regression_variance
+
+mean = ensemble_regression_mean(member_predictions)
+variance = ensemble_regression_variance(member_predictions)
+```
+
 ## Stochastic weight averaging
 
 `StochasticWeightAverage` maintains an incremental arithmetic mean of parameter snapshots. Update it after selected late-training epochs, then evaluate or checkpoint the averaged parameters to reduce sensitivity to a single noisy endpoint:

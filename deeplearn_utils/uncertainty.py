@@ -109,6 +109,46 @@ def risk_coverage_curve(
     return points
 
 
+def _regression_members(predictions: Sequence[Sequence[float]]) -> list[list[float]]:
+    if isinstance(predictions, (str, bytes)):
+        raise TypeError("predictions must be a sequence of member rows")
+    members = [list(row) for row in predictions]
+    if not members or not members[0]:
+        raise ValueError("predictions must contain non-empty member rows")
+    sample_count = len(members[0])
+    if any(len(row) != sample_count for row in members):
+        raise ValueError("all prediction members must have the same length")
+    for row in members:
+        for value in row:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError("predictions must contain numbers")
+            if not math.isfinite(value):
+                raise ValueError("predictions must contain finite numbers")
+    return [[float(value) for value in row] for row in members]
+
+
+def ensemble_regression_mean(predictions: Sequence[Sequence[float]]) -> list[float]:
+    """Return the mean prediction for each sample across ensemble members."""
+    members = _regression_members(predictions)
+    return [sum(member[index] for member in members) / len(members)
+            for index in range(len(members[0]))]
+
+
+def ensemble_regression_variance(
+    predictions: Sequence[Sequence[float]], *, unbiased: bool = False
+) -> list[float]:
+    """Return per-sample ensemble variance, optionally using Bessel correction."""
+    members = _regression_members(predictions)
+    if not isinstance(unbiased, bool):
+        raise TypeError("unbiased must be a boolean")
+    if unbiased and len(members) < 2:
+        raise ValueError("unbiased variance requires at least two members")
+    means = ensemble_regression_mean(members)
+    denominator = len(members) - 1 if unbiased else len(members)
+    return [sum((member[index] - means[index]) ** 2 for member in members) / denominator
+            for index in range(len(means))]
+
+
 @dataclass(frozen=True)
 class UncertaintySummary:
     """Per-sample ensemble uncertainty summary."""
@@ -136,6 +176,8 @@ def summarize_ensemble(
 __all__ = [
     "UncertaintySummary",
     "ensemble_mean",
+    "ensemble_regression_mean",
+    "ensemble_regression_variance",
     "entropy",
     "mutual_information",
     "predictive_entropy",

@@ -56,7 +56,17 @@ from .training import (
 from .history import BestMetric, EpochRecord, MetricHistory
 from .losses import binary_focal_loss, dice_coefficient, dice_loss, multiclass_focal_loss, multiclass_focal_loss_with_logits
 from .calibration import CalibrationBin, TemperatureScaler, calibrated_probabilities, negative_log_likelihood, reliability_bins
-from .uncertainty import UncertaintySummary, ensemble_mean, entropy, mutual_information, predictive_entropy, summarize_ensemble, variation_ratio
+from .uncertainty import (
+    UncertaintySummary,
+    ensemble_mean,
+    ensemble_regression_mean,
+    ensemble_regression_variance,
+    entropy,
+    mutual_information,
+    predictive_entropy,
+    summarize_ensemble,
+    variation_ratio,
+)
 from .metric_learning import batch_hard_triplet_loss, contrastive_loss, cosine_embedding_loss, pairwise_distance_matrix, triplet_margin_loss
 from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_split
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
@@ -225,6 +235,8 @@ __all__ = [
     "reliability_bins",
     "UncertaintySummary",
     "ensemble_mean",
+    "ensemble_regression_mean",
+    "ensemble_regression_variance",
     "entropy",
     "mutual_information",
     "predictive_entropy",
