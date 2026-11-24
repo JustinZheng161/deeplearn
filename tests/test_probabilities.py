@@ -7,6 +7,8 @@ from deeplearn_utils import (
     categorical_entropy,
     categorical_cross_entropy_with_logits,
     categorical_cross_entropy_with_logits_batch,
+    label_smoothed_cross_entropy_with_logits,
+    label_smoothed_cross_entropy_with_logits_batch,
     kl_divergence,
     log_softmax,
     sigmoid,
@@ -61,6 +63,37 @@ def test_categorical_cross_entropy_with_logits_matches_probability_form():
     expected = -math.log(softmax(logits)[2])
     assert categorical_cross_entropy_with_logits([0.0, 0.0, 1.0], logits) == pytest.approx(expected)
     assert categorical_cross_entropy_with_logits([0.25, 0.75], [0.0, 0.0]) == pytest.approx(math.log(2))
+
+
+def test_label_smoothed_logits_loss_matches_sparse_loss_without_smoothing():
+    logits = [1.0, 2.0, 3.0]
+    assert label_smoothed_cross_entropy_with_logits(logits, 2, smoothing=0.0) == pytest.approx(
+        sparse_cross_entropy_with_logits(logits, 2)
+    )
+
+
+def test_label_smoothed_logits_loss_distributes_mass_over_other_classes():
+    logits = [2.0, 0.0, -1.0]
+    smoothing = 0.2
+    expected = -(0.8 * log_softmax(logits)[0] + 0.1 * log_softmax(logits)[1] + 0.1 * log_softmax(logits)[2])
+    assert label_smoothed_cross_entropy_with_logits(logits, 0, smoothing=smoothing) == pytest.approx(expected)
+    assert label_smoothed_cross_entropy_with_logits_batch([logits, logits], [0, 0], smoothing=smoothing) == pytest.approx(expected)
+
+
+def test_label_smoothed_logits_loss_is_stable_for_extreme_logits():
+    assert math.isfinite(label_smoothed_cross_entropy_with_logits([1000.0, 0.0], 0))
+    assert label_smoothed_cross_entropy_with_logits([1000.0, 0.0], 0, smoothing=0.0) == pytest.approx(0.0)
+
+
+def test_label_smoothed_logits_loss_validates_configuration():
+    with pytest.raises(ValueError, match="valid class index"):
+        label_smoothed_cross_entropy_with_logits([1.0, 0.0], 2)
+    with pytest.raises(ValueError, match="between zero and one"):
+        label_smoothed_cross_entropy_with_logits([1.0, 0.0], 0, smoothing=1.0)
+    with pytest.raises(TypeError, match="smoothing"):
+        label_smoothed_cross_entropy_with_logits([1.0, 0.0], 0, smoothing=True)
+    with pytest.raises(ValueError, match="batch size"):
+        label_smoothed_cross_entropy_with_logits_batch([[1.0, 0.0]], [0, 1])
 
 
 def test_categorical_cross_entropy_with_logits_is_stable_for_large_logits():

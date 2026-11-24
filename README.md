@@ -230,6 +230,18 @@ from deeplearn_utils import sparse_cross_entropy_with_logits_batch
 loss = sparse_cross_entropy_with_logits_batch(logit_rows, class_ids)
 ```
 
+## Label-smoothed cross-entropy from logits
+
+`label_smoothed_cross_entropy_with_logits` combines integer class targets with uniform label smoothing and computes the loss directly from logits using stable `log_softmax`. This avoids constructing a separate target distribution while discouraging overconfident predictions:
+
+```python
+from deeplearn_utils import label_smoothed_cross_entropy_with_logits
+
+loss = label_smoothed_cross_entropy_with_logits(logits, target=2, smoothing=0.1)
+```
+
+Use `label_smoothed_cross_entropy_with_logits_batch` to average the same objective across a mini-batch.
+
 ## Kullback–Leibler divergence
 
 `kl_divergence` measures how far a predicted probability distribution is from a soft target distribution, making it useful for knowledge distillation and distribution matching:

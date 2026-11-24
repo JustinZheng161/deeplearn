@@ -229,6 +229,48 @@ def categorical_cross_entropy_with_logits_batch(
     return sum(losses) / len(losses)
 
 
+def label_smoothed_cross_entropy_with_logits(
+    logits: Sequence[float], target: int, *, smoothing: float = 0.1
+) -> float:
+    """Return stable cross-entropy with uniform label smoothing.
+
+    The target class receives ``1 - smoothing`` and the remaining classes share
+    the smoothing mass. Computing from log-softmax avoids a separate probability
+    conversion and remains finite for extreme logits.
+    """
+    values = _values(logits, "logits")
+    if isinstance(target, bool) or not isinstance(target, int) or not 0 <= target < len(values):
+        raise ValueError("target must be a valid class index")
+    if isinstance(smoothing, bool) or not isinstance(smoothing, (int, float)):
+        raise TypeError("smoothing must be a number")
+    if not math.isfinite(smoothing) or not 0 <= smoothing < 1:
+        raise ValueError("smoothing must be between zero and one")
+    log_probabilities = log_softmax(values)
+    class_count = len(values)
+    off_value = float(smoothing) / (class_count - 1) if class_count > 1 else 0.0
+    on_value = 1.0 - float(smoothing)
+    return -sum(
+        (on_value if index == target else off_value) * log_probability
+        for index, log_probability in enumerate(log_probabilities)
+    )
+
+
+def label_smoothed_cross_entropy_with_logits_batch(
+    logits: Sequence[Sequence[float]], targets: Sequence[int], *, smoothing: float = 0.1
+) -> float:
+    """Return mean label-smoothed cross-entropy across a logits batch."""
+    if isinstance(logits, (str, bytes)) or isinstance(targets, (str, bytes)):
+        raise TypeError("logits and targets must be sequences")
+    rows, labels = list(logits), list(targets)
+    if not rows or not labels:
+        raise ValueError("logits and targets must not be empty")
+    if len(rows) != len(labels):
+        raise ValueError("logits and targets must have the same batch size")
+    losses = [label_smoothed_cross_entropy_with_logits(row, target, smoothing=smoothing)
+              for row, target in zip(rows, labels)]
+    return sum(losses) / len(losses)
+
+
 def sparse_cross_entropy_with_logits(logits: Sequence[float], target: int) -> float:
     """Return stable cross-entropy for one integer target and raw logits."""
     values = _values(logits, "logits")
@@ -312,6 +354,8 @@ __all__ = [
     "brier_score_batch",
     "categorical_cross_entropy",
     "categorical_cross_entropy_with_logits_batch",
+    "label_smoothed_cross_entropy_with_logits",
+    "label_smoothed_cross_entropy_with_logits_batch",
     "categorical_cross_entropy_with_logits",
     "categorical_cross_entropy_batch",
     "categorical_entropy",

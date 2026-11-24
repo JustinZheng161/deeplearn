@@ -107,7 +107,9 @@ def test_risk_coverage_curve_keeps_confident_correct_predictions_first():
     from deeplearn_utils import risk_coverage_curve
 
     points = risk_coverage_curve([0.6, 0.9, 0.8], [False, True, True])
-    assert points == pytest.approx([(1 / 3, 0.0), (2 / 3, 0.0), (1.0, 1 / 3)])
+    expected = [(1 / 3, 0.0), (2 / 3, 0.0), (1.0, 1 / 3)]
+    for actual, reference in zip(points, expected):
+        assert actual == pytest.approx(reference)
 
 
 def test_risk_coverage_curve_validates_inputs():
