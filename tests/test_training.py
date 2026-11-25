@@ -178,6 +178,35 @@ def test_clip_by_global_norm_validates_limit(max_norm):
         clip_by_global_norm([[1.0]], max_norm)
 
 
+def test_clip_by_value_clamps_outliers_and_reports_changes():
+    from deeplearn_utils import clip_by_value
+
+    gradients = [[-3.0, -0.5, 2.0], []]
+    clipped, changed = clip_by_value(gradients, minimum=-1.0, maximum=1.0)
+    assert clipped == [[-1.0, -0.5, 1.0], []]
+    assert changed == 2
+    assert gradients == [[-3.0, -0.5, 2.0], []]
+
+
+def test_clip_by_value_copies_values_inside_bounds():
+    from deeplearn_utils import clip_by_value
+
+    clipped, changed = clip_by_value([[0.2], []], minimum=-1.0, maximum=1.0)
+    assert clipped == [[0.2], []]
+    assert changed == 0
+
+
+@pytest.mark.parametrize(
+    ("minimum", "maximum", "error"),
+    [(1.0, -1.0, ValueError), (float("nan"), 1.0, ValueError), (0.0, True, TypeError)],
+)
+def test_clip_by_value_validates_bounds(minimum, maximum, error):
+    from deeplearn_utils import clip_by_value
+
+    with pytest.raises(error):
+        clip_by_value([[1.0]], minimum, maximum)
+
+
 def test_gradient_accumulator_returns_sample_weighted_mean_and_resets():
     from deeplearn_utils import GradientAccumulator
 

@@ -126,6 +126,46 @@ def clip_by_global_norm(
     return [[float(value) * scale for value in row] for row in rows], global_norm
 
 
+def clip_by_value(
+    gradients: Sequence[Sequence[float]], minimum: float, maximum: float
+) -> tuple[list[list[float]], int]:
+    """Clamp each gradient element and return the number of changed values.
+
+    Unlike global-norm clipping, value clipping limits individual outliers
+    without rescaling unrelated coordinates. Empty gradient rows are kept and
+    the input is never mutated.
+    """
+    if isinstance(gradients, (str, bytes)):
+        raise TypeError("gradients must be a sequence of vectors")
+    try:
+        rows = [list(row) for row in gradients]
+    except TypeError as exc:
+        raise TypeError("gradients must be a sequence of vectors") from exc
+    if not rows:
+        raise ValueError("gradients must not be empty")
+    for name, value in (("minimum", minimum), ("maximum", maximum)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError(f"{name} must be a number")
+        if not math.isfinite(value):
+            raise ValueError(f"{name} must be finite")
+    if minimum > maximum:
+        raise ValueError("minimum must not exceed maximum")
+    clipped_count = 0
+    result = []
+    for row in rows:
+        clipped_row = []
+        for value in row:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError("gradients must contain numbers")
+            if not math.isfinite(value):
+                raise ValueError("gradients must contain finite values")
+            clipped = min(max(float(value), float(minimum)), float(maximum))
+            clipped_count += clipped != value
+            clipped_row.append(clipped)
+        result.append(clipped_row)
+    return result, clipped_count
+
+
 @dataclass
 class RunningAverage:
     """Track a weighted mean such as loss over batches of unequal size."""
@@ -374,5 +414,6 @@ __all__ = [
     "RunningAverage",
     "batch_indices",
     "centralize_gradients",
+    "clip_by_value",
     "iter_minibatches",
 ]

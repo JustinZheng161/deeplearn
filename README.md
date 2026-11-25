@@ -317,6 +317,16 @@ for gradients, sample_count in micro_batches:
 optimizer.step(parameters, accumulator.value())
 ```
 
+`clip_by_value` clamps individual gradient coordinates and reports how many
+values changed, complementing uniform global-norm clipping when a few outliers
+would otherwise dominate an update:
+
+```python
+from deeplearn_utils import clip_by_value
+
+safe_gradients, clipped_count = clip_by_value(gradients, -1.0, 1.0)
+```
+
 ## Exponential moving average of parameters
 
 `ParameterEMA` tracks smoothed model parameters for more stable evaluation or checkpointing after noisy updates:
