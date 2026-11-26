@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from deeplearn_utils import AdaGrad, Adam, Lion, RAdam, RMSprop, SAM, SGD
+from deeplearn_utils import AdaGrad, Adam, Lion, NAdam, RAdam, RMSprop, SAM, SGD
 
 
 def test_sam_applies_gradient_perturbation_then_second_update():
@@ -36,6 +36,25 @@ def test_sam_validates_configuration_and_step_dimensions():
     optimizer.first_step([1.0], [1.0])
     with pytest.raises(ValueError, match="dimension"):
         optimizer.second_step([1.0, 2.0], [1.0, 2.0])
+
+
+def test_nadam_uses_nesterov_bias_correction_and_tracks_state():
+    optimizer = NAdam(learning_rate=0.1)
+    first = optimizer.step([1.0, -1.0], [1.0, -1.0])
+    second = optimizer.step(first, [1.0, -1.0])
+    assert first == pytest.approx([0.81, -0.81], abs=1e-6)
+    assert second == pytest.approx([0.6673684244, -0.6673684244], abs=1e-6)
+    assert optimizer.step_count == 2
+    assert optimizer.first_moment == pytest.approx([0.19, -0.19])
+
+
+def test_nadam_supports_decoupled_decay_and_reset():
+    optimizer = NAdam(learning_rate=0.1, weight_decay=0.2)
+    assert optimizer.step([1.0], [0.0])[0] == pytest.approx(0.98)
+    optimizer.reset()
+    assert optimizer.step_count == 0
+    assert optimizer.first_moment == []
+    assert optimizer.second_moment == []
 
 
 def test_sgd_without_momentum_matches_gradient_descent():
@@ -144,6 +163,10 @@ def test_optimizers_validate_hyperparameters():
         SGD(nesterov=True)
     with pytest.raises(ValueError):
         Adam(beta1=1)
+    with pytest.raises(ValueError):
+        NAdam(beta2=1)
+    with pytest.raises(ValueError):
+        NAdam(epsilon=0)
     with pytest.raises(ValueError):
         Adam(epsilon=0)
     with pytest.raises(ValueError):

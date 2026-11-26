@@ -160,6 +160,70 @@ class Adam(OptimizerStateMixin):
 
 
 @dataclass
+class NAdam(OptimizerStateMixin):
+    """Adam with a bias-corrected Nesterov first-moment update."""
+
+    learning_rate: float = 1e-3
+    beta1: float = 0.9
+    beta2: float = 0.999
+    epsilon: float = 1e-8
+    weight_decay: float = 0.0
+    first_moment: list[float] = field(default_factory=list)
+    second_moment: list[float] = field(default_factory=list)
+    step_count: int = 0
+
+    def __post_init__(self) -> None:
+        _positive(self.learning_rate, "learning_rate")
+        for name, value in (("beta1", self.beta1), ("beta2", self.beta2)):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
+                raise ValueError(f"{name} must be between zero and one")
+        _positive(self.epsilon, "epsilon")
+        if isinstance(self.weight_decay, bool) or not isinstance(self.weight_decay, (int, float)):
+            raise TypeError("weight_decay must be a number")
+        if not math.isfinite(self.weight_decay) or self.weight_decay < 0:
+            raise ValueError("weight_decay must be non-negative and finite")
+
+    def step(self, parameters: Sequence[float], gradients: Sequence[float]) -> list[float]:
+        """Return parameters after one NAdam update."""
+        values = _vector(parameters, "parameters")
+        updates = _vector(gradients, "gradients")
+        if len(values) != len(updates):
+            raise ValueError("parameters and gradients must have the same length")
+        if self.first_moment and len(self.first_moment) != len(values):
+            raise ValueError("parameter dimension changed after optimizer initialization")
+        if not self.first_moment:
+            self.first_moment = [0.0] * len(values)
+            self.second_moment = [0.0] * len(values)
+        self.step_count += 1
+        self.first_moment = [
+            self.beta1 * old + (1 - self.beta1) * gradient
+            for old, gradient in zip(self.first_moment, updates)
+        ]
+        self.second_moment = [
+            self.beta2 * old + (1 - self.beta2) * gradient * gradient
+            for old, gradient in zip(self.second_moment, updates)
+        ]
+        first_correction = 1 - self.beta1 ** self.step_count
+        second_correction = 1 - self.beta2 ** self.step_count
+        nesterov = [
+            (self.beta1 * first / first_correction)
+            + ((1 - self.beta1) * gradient / first_correction)
+            for first, gradient in zip(self.first_moment, updates)
+        ]
+        return [
+            value * (1 - self.learning_rate * self.weight_decay)
+            - self.learning_rate * direction / (math.sqrt(second / second_correction) + self.epsilon)
+            for value, direction, second in zip(values, nesterov, self.second_moment)
+        ]
+
+    def reset(self) -> None:
+        """Reset moments and step counter."""
+        self.first_moment.clear()
+        self.second_moment.clear()
+        self.step_count = 0
+
+
+@dataclass
 class Lion(OptimizerStateMixin):
     """Lion optimizer using sign-based momentum updates and decoupled decay."""
 
@@ -419,4 +483,4 @@ class RMSprop(OptimizerStateMixin):
         self.gradient_average.clear()
 
 
-__all__ = ["AdaGrad", "Adam", "Lion", "RAdam", "RMSprop", "SAM", "SGD"]
+__all__ = ["AdaGrad", "Adam", "Lion", "NAdam", "RAdam", "RMSprop", "SAM", "SGD"]

@@ -126,6 +126,17 @@ optimizer = Lion(learning_rate=1e-4, weight_decay=1e-2)
 parameters = optimizer.step(parameters, gradients)
 ```
 
+## NAdam optimizer
+
+`NAdam` combines Adam's adaptive second-moment scaling with a bias-corrected Nesterov first-moment direction. It is useful when a training loop benefits from look-ahead momentum without requiring a separate optimizer wrapper:
+
+```python
+from deeplearn_utils import NAdam
+
+optimizer = NAdam(learning_rate=1e-3, weight_decay=1e-4)
+parameters = optimizer.step(parameters, gradients)
+```
+
 ## Sharpness-Aware Minimization optimizer
 
 `SAM` performs a first update in a small gradient-aligned neighborhood, then applies the second-pass gradient at the original parameters. This two-step optimizer can reduce sensitivity to sharp minima; `adaptive=True` scales the perturbation by parameter magnitude:
