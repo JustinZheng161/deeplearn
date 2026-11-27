@@ -55,6 +55,27 @@ def rms_norm(
     return [[value / math.sqrt(sum(item * item for item in row) / len(row) + epsilon) * weight for value, weight in zip(row, scale)] for row in rows]
 
 
+def weight_standardize(
+    weights: Sequence[Sequence[float]], *, epsilon: float = 1e-5
+) -> list[list[float]]:
+    """Standardize each weight row before applying a layer.
+
+    Each row is treated as one filter or output unit. Centering and scaling
+    weights per row can improve conditioning in convolutional and linear
+    layers without depending on batch statistics or changing the input.
+    """
+    rows = _matrix(weights)
+    _epsilon(epsilon)
+    width = len(rows[0])
+    result = []
+    for row in rows:
+        mean = sum(row) / width
+        variance = sum((value - mean) ** 2 for value in row) / width
+        denominator = math.sqrt(variance + epsilon)
+        result.append([(value - mean) / denominator for value in row])
+    return result
+
+
 def group_norm(
     values: Sequence[Sequence[float]], groups: int, *, gamma: Sequence[float] | None = None,
     beta: Sequence[float] | None = None, epsilon: float = 1e-5
@@ -150,4 +171,4 @@ def _features(values: Sequence[float] | None, width: int, name: str, default: fl
     return [float(value) for value in result]
 
 
-__all__ = ["RunningBatchNorm", "batch_norm", "group_norm", "layer_norm", "rms_norm"]
+__all__ = ["RunningBatchNorm", "batch_norm", "group_norm", "layer_norm", "rms_norm", "weight_standardize"]

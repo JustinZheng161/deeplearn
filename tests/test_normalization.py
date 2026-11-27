@@ -1,6 +1,6 @@
 import pytest
 
-from deeplearn_utils import RunningBatchNorm, batch_norm, layer_norm, rms_norm
+from deeplearn_utils import RunningBatchNorm, batch_norm, layer_norm, rms_norm, weight_standardize
 
 
 def test_layer_norm_zero_centers_each_row():
@@ -17,6 +17,20 @@ def test_layer_norm_applies_affine_parameters():
 def test_rms_norm_preserves_sign_and_scales_magnitude():
     result = rms_norm([[3, 4]])
     assert result[0] == pytest.approx([0.848528, 1.131371], abs=1e-5)
+
+
+def test_weight_standardize_centers_and_scales_each_filter():
+    result = weight_standardize([[1.0, 2.0, 3.0], [10.0, 10.0, 10.0]])
+    assert sum(result[0]) == pytest.approx(0.0)
+    assert sum(value * value for value in result[0]) == pytest.approx(3.0, abs=1e-4)
+    assert result[1] == pytest.approx([0.0, 0.0, 0.0])
+
+
+def test_weight_standardize_validates_matrix_and_epsilon():
+    with pytest.raises(ValueError):
+        weight_standardize([[1.0, 2.0], [3.0]])
+    with pytest.raises(ValueError):
+        weight_standardize([[1.0, 2.0]], epsilon=0)
 
 
 def test_batch_norm_zero_centers_each_feature_column():

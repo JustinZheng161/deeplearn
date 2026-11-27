@@ -73,7 +73,7 @@ from .sequences import causal_mask, pad_sequences, sliding_windows, temporal_spl
 from .regularization import clip_vector_norm, elastic_net_penalty, l1_penalty, l2_penalty, weight_decay_update
 from .optimizers import AdaGrad, Adam, Lion, NAdam, RAdam, SAM, SGD
 from .lookahead import Lookahead
-from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm
+from .normalization import RunningBatchNorm, batch_norm, layer_norm, rms_norm, weight_standardize
 from .attention import attention_pool, causal_attention_mask, multi_head_attention, scaled_dot_product_attention
 from .activations import gelu, leaky_relu, leaky_relu_derivative, mish, mish_derivative, relu, relu_derivative, sigmoid as vector_sigmoid, silu, silu_derivative, softplus, softplus_inverse
 from .pooling import logsumexp_pool, masked_softmax, max_pool, mean_pool, min_pool, sum_pool, top_k_pool
@@ -274,6 +274,7 @@ __all__ = [
     "batch_norm",
     "layer_norm",
     "rms_norm",
+    "weight_standardize",
     "attention_pool",
     "multi_head_attention",
     "causal_attention_mask",

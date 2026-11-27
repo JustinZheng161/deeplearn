@@ -315,6 +315,16 @@ from deeplearn_utils import group_norm
 normalized = group_norm(features, groups=4)
 ```
 
+`weight_standardize` standardizes each filter or output-unit row before a
+linear or convolutional layer, improving conditioning without using batch
+statistics:
+
+```python
+from deeplearn_utils import weight_standardize
+
+normalized_weights = weight_standardize(weights)
+```
+
 ## Gradient accumulation
 
 `GradientAccumulator` combines gradients from multiple micro-batches and returns a sample-weighted mean, allowing larger effective batches when device memory is limited:
