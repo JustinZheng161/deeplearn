@@ -167,6 +167,37 @@ def balanced_accuracy(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
     return sum(recalls) / len(recalls)
 
 
+def matthews_correlation(y_true: Sequence[Any], y_pred: Sequence[Any]) -> float:
+    """Return the multiclass Matthews correlation coefficient.
+
+    MCC summarizes the confusion matrix as a correlation between targets and
+    predictions, remaining informative under severe class imbalance. A zero
+    denominator returns ``0.0`` because the correlation is undefined for a
+    constant target or prediction vector.
+    """
+    actual, predicted = _validate_pair(y_true, y_pred)
+    classes: list[Any] = []
+    for value in [*actual, *predicted]:
+        if value not in classes:
+            classes.append(value)
+    index = {label: position for position, label in enumerate(classes)}
+    matrix = [[0 for _ in classes] for _ in classes]
+    for target, guess in zip(actual, predicted):
+        matrix[index[target]][index[guess]] += 1
+    total = len(actual)
+    actual_counts = [sum(row) for row in matrix]
+    predicted_counts = [sum(matrix[row][column] for row in range(len(classes))) for column in range(len(classes))]
+    correct = sum(matrix[position][position] for position in range(len(classes)))
+    numerator = correct * total - sum(
+        actual_count * predicted_count
+        for actual_count, predicted_count in zip(actual_counts, predicted_counts)
+    )
+    actual_variance = total * total - sum(count * count for count in actual_counts)
+    predicted_variance = total * total - sum(count * count for count in predicted_counts)
+    denominator = (actual_variance * predicted_variance) ** 0.5
+    return numerator / denominator if denominator else 0.0
+
+
 def mean_iou(
     y_true: Sequence[Any], y_pred: Sequence[Any], *, labels: Sequence[Any] | None = None
 ) -> float:

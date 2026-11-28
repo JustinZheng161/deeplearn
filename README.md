@@ -545,14 +545,15 @@ r2 = r2_score(targets, predictions)
 
 ## Classification metrics
 
-The dependency-free metrics module provides `accuracy`, `balanced_accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports. `balanced_accuracy` weights each observed class equally, which is useful for imbalanced validation sets.
+The dependency-free metrics module provides `accuracy`, `balanced_accuracy`, `confusion_matrix`, `precision_recall_f1`, `macro_f1`, `matthews_correlation`, and `top_k_accuracy`. They accept ordinary Python sequences, validate shapes and labels, and return JSON-friendly values for experiment reports. `balanced_accuracy` weights each observed class equally, which is useful for imbalanced validation sets.
 
 ```python
-from deeplearn_utils import macro_f1, top_k_accuracy
-
+from deeplearn_utils import macro_f1, matthews_correlation, top_k_accuracy
 f1 = macro_f1([0, 1, 1], [0, 1, 0])
+mcc = matthews_correlation([0, 1, 1], [0, 1, 0])
 top1 = top_k_accuracy([0, 1], [[0.8, 0.2], [0.4, 0.6]])
 ```
+
 
 For neural classifiers whose confidence scores may be overconfident, `expected_calibration_error` measures the confidence-versus-accuracy gap across equal-width probability bins:
 

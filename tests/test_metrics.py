@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from deeplearn_utils import (
@@ -5,6 +7,7 @@ from deeplearn_utils import (
     balanced_accuracy,
     confusion_matrix,
     macro_f1,
+    matthews_correlation,
     mean_iou,
     precision_recall_f1,
     top_k_accuracy,
@@ -56,6 +59,24 @@ def test_binary_metrics_are_zero_when_positive_class_is_absent():
 
 def test_macro_f1_averages_all_observed_classes():
     assert macro_f1([0, 0, 1, 1], [0, 1, 1, 1]) == pytest.approx(11 / 15)
+
+
+def test_matthews_correlation_is_one_for_perfect_predictions():
+    assert matthews_correlation([0, 1, 0, 1], [0, 1, 0, 1]) == pytest.approx(1.0)
+
+
+def test_matthews_correlation_handles_imbalanced_binary_predictions():
+    assert matthews_correlation([1, 1, 1, 1, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0]) == pytest.approx(12 / math.sqrt(240))
+
+
+def test_matthews_correlation_supports_multiclass_confusion_counts():
+    assert matthews_correlation([0, 0, 1, 1, 2, 2], [0, 1, 1, 2, 2, 0]) == pytest.approx(0.25)
+
+
+def test_matthews_correlation_returns_zero_for_constant_predictions():
+    assert matthews_correlation([0, 1, 1], [1, 1, 1]) == pytest.approx(0.0)
+    with pytest.raises(ValueError, match="same length"):
+        matthews_correlation([0], [0, 1])
 
 
 def test_mean_iou_averages_class_intersections_over_unions():
